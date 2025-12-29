@@ -24,25 +24,33 @@ class MultiSearchCoordinator:
         # Arama motorları istemcileri
         self.serper = SerperClient()
         self.brave = BraveSearchClient()
-        self.yandex = YandexSearchClient()
         self.searchapi = SearchApiClient()
+        
+        # Yandex client optional (authorized_key.json olmayabilir)
+        try:
+            self.yandex = YandexSearchClient()
+        except Exception as e:
+            print(f"Yandex client başlatılamadı: {e}")
+            self.yandex = None
         
         # Aktif motorlar
         self.engines = {
             "serper": self.serper,
             "brave": self.brave,
-            "yandex": self.yandex,
             "searchapi_bing": self.searchapi,
             "searchapi_google": self.searchapi,
             "searchapi_baidu": self.searchapi,
             "searchapi_naver": self.searchapi
         }
+        if self.yandex:
+            self.engines["yandex"] = self.yandex
     
     async def close(self):
         """Tüm session'ları kapat"""
         await self.serper.close()
         await self.brave.close()
-        await self.yandex.close()
+        if self.yandex:
+            await self.yandex.close()
         await self.searchapi.close()
     
     async def search_single_engine(
