@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+aiohttp
+python-dotenv
+pymupdf
+aiofiles
+pydantic
+requests
+python-jose[cryptography]
+passlib[bcrypt]
+cryptography
+python-multipart
+email-validator
+sse-starlette
+anthropic
+PyJWT
+

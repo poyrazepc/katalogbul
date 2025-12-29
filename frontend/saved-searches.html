@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html class="dark" lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Kayıtlı Aramalar - MakineParça</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFC500",
+                        "primary-hover": "#e6b200",
+                        "background-dark": "#0B0E11",
+                        "surface-dark": "#161B22",
+                        "surface-hover": "#1F2630",
+                        "border-dark": "#30363D",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.375rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #0B0E11; }
+        ::-webkit-scrollbar-thumb { background: #30363D; border: 1px solid #0B0E11; }
+        ::-webkit-scrollbar-thumb:hover { background: #FFC500; }
+    </style>
+</head>
+<body class="bg-background-dark min-h-screen flex flex-col font-display text-gray-300 overflow-x-hidden selection:bg-primary selection:text-black">
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-50 w-full border-b border-border-dark bg-surface-dark shadow-lg">
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-primary"></div>
+        <div class="flex items-center justify-between px-6 py-3 max-w-[1440px] mx-auto w-full">
+            <div class="flex items-center gap-8">
+                <a class="flex items-center gap-3 text-white hover:opacity-80 transition-opacity" href="/">
+                    <div class="size-9 text-primary bg-white/5 rounded p-1.5 border border-primary/20">
+                        <span class="material-symbols-outlined text-2xl">construction</span>
+                    </div>
+                    <h2 class="text-xl font-bold leading-tight tracking-tight hidden sm:block text-white">Makine<span class="text-primary">Parça</span></h2>
+                </a>
+            </div>
+            <div class="flex items-center gap-4 sm:gap-8">
+                <nav class="hidden lg:flex items-center gap-6">
+                    <a class="text-sm font-medium text-gray-400 hover:text-primary transition-colors" href="/">Ana Sayfa</a>
+                    <a class="text-sm font-medium text-gray-400 hover:text-primary transition-colors" href="/search.html">Detaylı Arama</a>
+                    <a class="text-sm font-medium text-primary" href="/saved-searches.html">Kayıtlı Aramalar</a>
+                    <a class="text-sm font-medium text-gray-400 hover:text-primary transition-colors" href="/dashboard.html">Panel</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 max-w-[1440px] w-full mx-auto">
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="inline-block px-3 py-1 bg-primary/10 border border-primary/30 text-primary text-xs font-bold uppercase mb-3 rounded-sm">
+                    Arama Geçmişi
+                </div>
+                <h1 class="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight uppercase">Kayıtlı <span class="text-primary">Aramalar</span></h1>
+                <p class="text-gray-400">Tüm kullanıcıların yaptığı aramalar, marka ve kategori bazında gruplandırılmış.</p>
+            </div>
+
+            <!-- Filters Card -->
+            <div class="bg-surface-dark border border-border-dark rounded-xl p-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Marka Filtresi -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Marka</label>
+                        <select 
+                            id="brand-filter"
+                            class="w-full h-12 px-4 bg-background-dark border border-border-dark rounded text-white text-sm focus:ring-1 focus:ring-primary focus:border-primary appearance-none cursor-pointer"
+                        >
+                            <option value="">Tüm Markalar</option>
+                        </select>
+                    </div>
+
+                    <!-- Kategori Filtresi -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kategori</label>
+                        <select 
+                            id="category-filter"
+                            class="w-full h-12 px-4 bg-background-dark border border-border-dark rounded text-white text-sm focus:ring-1 focus:ring-primary focus:border-primary appearance-none cursor-pointer"
+                        >
+                            <option value="">Tüm Kategoriler</option>
+                        </select>
+                    </div>
+
+                    <!-- Arama Kutusu -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ara</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">search</span>
+                            <input 
+                                type="text" 
+                                id="search-input"
+                                class="w-full h-12 pl-12 pr-4 bg-background-dark border border-border-dark rounded text-white text-sm placeholder:text-gray-600 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                placeholder="Arama sorgusu..."
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Sıralama -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sırala</label>
+                        <select 
+                            id="sort-select"
+                            class="w-full h-12 px-4 bg-background-dark border border-border-dark rounded text-white text-sm focus:ring-1 focus:ring-primary focus:border-primary appearance-none cursor-pointer"
+                        >
+                            <option value="recent">En Yeni</option>
+                            <option value="popular">En Popüler</option>
+                            <option value="brand">Marka</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div id="stats-card" class="bg-surface-dark border border-border-dark rounded-xl p-6 mb-8 hidden">
+                <div class="flex flex-wrap items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-2xl">search</span>
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase tracking-widest">Toplam Arama</div>
+                            <div class="text-2xl font-bold text-white" id="total-searches">0</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-2xl">factory</span>
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase tracking-widest">Markalar</div>
+                            <div class="text-2xl font-bold text-white" id="unique-brands">0</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-2xl">category</span>
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase tracking-widest">Kategoriler</div>
+                            <div class="text-2xl font-bold text-white" id="unique-categories">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="hidden py-16 text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
+                <p class="text-gray-400 text-lg">Yükleniyor...</p>
+            </div>
+
+            <!-- Results Container -->
+            <div id="results-container" class="hidden">
+                <!-- Results List -->
+                <div id="results-list" class="space-y-6"></div>
+
+                <!-- Pagination -->
+                <div id="pagination" class="hidden flex justify-center mt-8">
+                    <nav class="flex items-center gap-1" id="pagination-nav"></nav>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden text-center py-16">
+                <span class="material-symbols-outlined text-6xl text-gray-600 mb-4">search_off</span>
+                <p class="text-gray-400 text-lg">Sonuç bulunamadı</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentPage = 1;
+        let perPage = 50;
+        let currentFilters = {
+            brand: '',
+            category: '',
+            search: '',
+            sort: 'recent'
+        };
+        let allBrands = [];
+        let allCategories = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadSearches();
+            setupFilters();
+        });
+
+        // Setup filter event listeners
+        function setupFilters() {
+            document.getElementById('brand-filter').addEventListener('change', (e) => {
+                currentFilters.brand = e.target.value;
+                currentPage = 1;
+                loadSearches();
+            });
+
+            document.getElementById('category-filter').addEventListener('change', (e) => {
+                currentFilters.category = e.target.value;
+                currentPage = 1;
+                loadSearches();
+            });
+
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                currentFilters.search = e.target.value;
+                currentPage = 1;
+                // Debounce
+                clearTimeout(window.searchTimeout);
+                window.searchTimeout = setTimeout(() => {
+                    loadSearches();
+                }, 500);
+            });
+
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                currentFilters.sort = e.target.value;
+                currentPage = 1;
+                loadSearches();
+            });
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/saved-searches/stats`);
+                const data = await response.json();
+                
+                document.getElementById('total-searches').textContent = data.total_searches || 0;
+                document.getElementById('unique-brands').textContent = data.unique_brands || 0;
+                document.getElementById('unique-categories').textContent = data.unique_categories || 0;
+                document.getElementById('stats-card').classList.remove('hidden');
+            } catch (error) {
+                console.error('Stats load error:', error);
+            }
+        }
+
+        // Load searches
+        async function loadSearches() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results-container').classList.add('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage.toString(),
+                    per_page: perPage.toString(),
+                    sort: currentFilters.sort
+                });
+
+                if (currentFilters.brand) params.append('brand', currentFilters.brand);
+                if (currentFilters.category) params.append('category', currentFilters.category);
+                if (currentFilters.search) params.append('search', currentFilters.search);
+
+                const response = await fetch(`${API_BASE}/saved-searches?${params}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Update filter dropdowns
+                    updateFilterDropdowns(data.brands, data.categories);
+
+                    // Display results
+                    if (data.searches && data.searches.length > 0) {
+                        displayResults(data.searches, data.stats);
+                        renderPagination(data.pagination);
+                        document.getElementById('results-container').classList.remove('hidden');
+                    } else {
+                        document.getElementById('empty-state').classList.remove('hidden');
+                    }
+                } else {
+                    alert('Veri yüklenirken hata oluştu');
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                alert('Bağlantı hatası');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // Update filter dropdowns
+        function updateFilterDropdowns(brands, categories) {
+            // Brand dropdown
+            const brandSelect = document.getElementById('brand-filter');
+            const currentBrand = brandSelect.value;
+            
+            brandSelect.innerHTML = '<option value="">Tüm Markalar</option>';
+            brands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand.charAt(0).toUpperCase() + brand.slice(1);
+                if (brand === currentBrand) option.selected = true;
+                brandSelect.appendChild(option);
+            });
+
+            // Category dropdown
+            const categorySelect = document.getElementById('category-filter');
+            const currentCategory = categorySelect.value;
+            
+            categorySelect.innerHTML = '<option value="">Tüm Kategoriler</option>';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = getCategoryLabel(category);
+                if (category === currentCategory) option.selected = true;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        // Get category label
+        function getCategoryLabel(category) {
+            const labels = {
+                'parts_catalog': 'Yedek Parça Kataloğu',
+                'service_manual': 'Servis / Tamir Kılavuzu',
+                'electrical_diagram': 'Elektrik Şeması',
+                'hydraulic_diagram': 'Hidrolik Şeması',
+                'troubleshooting': 'Arıza Teşhis ve Çözüm'
+            };
+            return labels[category] || category;
+        }
+
+        // Display results grouped by brand and category
+        function displayResults(searches, stats) {
+            const container = document.getElementById('results-list');
+            container.innerHTML = '';
+
+            // Group by brand
+            const groupedByBrand = {};
+            searches.forEach(search => {
+                const brand = search.brand || 'Diğer';
+                if (!groupedByBrand[brand]) {
+                    groupedByBrand[brand] = {};
+                }
+                const category = search.category || 'parts_catalog';
+                if (!groupedByBrand[brand][category]) {
+                    groupedByBrand[brand][category] = [];
+                }
+                groupedByBrand[brand][category].push(search);
+            });
+
+            // Render groups
+            Object.keys(groupedByBrand).sort().forEach(brand => {
+                const brandGroup = groupedByBrand[brand];
+                const totalCount = Object.values(brandGroup).flat().length;
+
+                const brandSection = document.createElement('div');
+                brandSection.className = 'bg-surface-dark border border-border-dark rounded-xl p-6';
+
+                let html = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-primary uppercase">${brand}</h3>
+                        <span class="text-sm text-gray-400">${totalCount} arama</span>
+                    </div>
+                `;
+
+                // Group by category within brand
+                Object.keys(brandGroup).sort().forEach(category => {
+                    const categorySearches = brandGroup[category];
+                    const categoryLabel = getCategoryLabel(category);
+
+                    html += `
+                        <div class="mb-4 last:mb-0">
+                            <h4 class="text-sm font-bold text-gray-400 mb-2 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-lg">folder</span>
+                                ${categoryLabel} <span class="text-primary">(${categorySearches.length})</span>
+                            </h4>
+                            <div class="space-y-2">
+                    `;
+
+                    categorySearches.forEach(search => {
+                        const date = new Date(search.created_at).toLocaleDateString('tr-TR');
+                        html += `
+                            <div class="flex items-center justify-between p-3 bg-background-dark rounded border border-border-dark hover:border-primary/50 transition-colors group">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-sm font-medium text-white">${escapeHtml(search.query)}</span>
+                                        <span class="text-xs text-gray-500">${date}</span>
+                                        ${search.result_count > 0 ? `<span class="text-xs text-green-500">${search.result_count} sonuç</span>` : ''}
+                                        ${search.search_count > 1 ? `<span class="text-xs text-primary">${search.search_count}x arandı</span>` : ''}
+                                    </div>
+                                </div>
+                                <button 
+                                    onclick="performSearch('${escapeHtml(search.query)}', '${search.category || 'parts_catalog'}')"
+                                    class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold rounded transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                    Tekrar Ara
+                                </button>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+
+                brandSection.innerHTML = html;
+                container.appendChild(brandSection);
+            });
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Perform search (redirect to search page)
+        function performSearch(query, category) {
+            // Parse query to extract brand and model
+            const parts = query.split(' ');
+            const brand = parts[0] || '';
+            const model = parts.slice(1).join(' ') || '';
+
+            // Redirect to search page with parameters
+            const params = new URLSearchParams({
+                brand: brand,
+                model: model,
+                category: category
+            });
+            window.location.href = `/search.html?${params.toString()}`;
+        }
+
+        // Render pagination
+        function renderPagination(pagination) {
+            const nav = document.getElementById('pagination-nav');
+            const paginationDiv = document.getElementById('pagination');
+
+            if (pagination.total_pages <= 1) {
+                paginationDiv.classList.add('hidden');
+                return;
+            }
+
+            paginationDiv.classList.remove('hidden');
+            nav.innerHTML = '';
+
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = `p-2 rounded ${pagination.page === 1 ? 'text-gray-600 cursor-not-allowed' : 'hover:bg-surface-hover text-gray-500 hover:text-white'}`;
+            prevBtn.innerHTML = '<span class="material-symbols-outlined">chevron_left</span>';
+            prevBtn.disabled = pagination.page === 1;
+            prevBtn.onclick = () => {
+                if (pagination.page > 1) {
+                    currentPage = pagination.page - 1;
+                    loadSearches();
+                }
+            };
+            nav.appendChild(prevBtn);
+
+            // Page numbers
+            const pages = getPageNumbers(pagination.page, pagination.total_pages);
+            pages.forEach(page => {
+                if (page === '...') {
+                    const dots = document.createElement('span');
+                    dots.className = 'px-2 text-gray-600';
+                    dots.textContent = '...';
+                    nav.appendChild(dots);
+                } else {
+                    const btn = document.createElement('button');
+                    btn.className = page === pagination.page
+                        ? 'px-4 py-2 rounded bg-primary text-black font-bold'
+                        : 'px-4 py-2 rounded hover:bg-surface-hover text-gray-400 hover:text-white font-medium transition-colors';
+                    btn.textContent = page;
+                    btn.onclick = () => {
+                        currentPage = page;
+                        loadSearches();
+                    };
+                    nav.appendChild(btn);
+                }
+            });
+
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = `p-2 rounded ${pagination.page === pagination.total_pages ? 'text-gray-600 cursor-not-allowed' : 'hover:bg-surface-hover text-gray-500 hover:text-white'}`;
+            nextBtn.innerHTML = '<span class="material-symbols-outlined">chevron_right</span>';
+            nextBtn.disabled = pagination.page === pagination.total_pages;
+            nextBtn.onclick = () => {
+                if (pagination.page < pagination.total_pages) {
+                    currentPage = pagination.page + 1;
+                    loadSearches();
+                }
+            };
+            nav.appendChild(nextBtn);
+
+            // Page info
+            const info = document.createElement('span');
+            info.className = 'ml-4 text-xs text-gray-500';
+            info.textContent = `${pagination.total} sonuçtan ${(pagination.page - 1) * perPage + 1}-${Math.min(pagination.page * perPage, pagination.total)} arası`;
+            nav.appendChild(info);
+        }
+
+        // Get page numbers
+        function getPageNumbers(current, total) {
+            if (total <= 7) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
+
+            const pages = [];
+            pages.push(1);
+
+            if (current > 3) {
+                pages.push('...');
+            }
+
+            for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+                pages.push(i);
+            }
+
+            if (current < total - 2) {
+                pages.push('...');
+            }
+
+            pages.push(total);
+
+            return pages;
+        }
+    </script>
+</body>
+</html>
+

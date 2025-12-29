@@ -1,0 +1,166 @@
+---
+description: FastAPI endpoint kuralları
+globs: "api/**/*.py"
+alwaysApply: false
+---
+
+# FastAPI Kuralları
+
+## Endpoint Yapısı
+```python
+@app.post("/api/search", response_model=SearchResponse)
+async def search_pdfs(
+    request: SearchRequest,
+    background_tasks: BackgroundTasks,
+    user: Optional[User] = Depends(get_current_user_optional),
+    client_ip: str = Depends(get_client_ip)
+) -> SearchResponse:
+    """PDF arama endpoint'i."""
+    
+    # 1. Kredi kontrolü
+    if user:
+        credit_manager.check_credits(user.id, required=10)
+    
+    # 2. İşlem
+    results = await multi_search.search(request.query)
+    
+    # 3. Kredi düşümü
+    if user:
+        credit_manager.deduct_credits(user.id, amount=10)
+    
+    # 4. Log
+    background_tasks.add_task(log_search, user, request, results)
+    
+    return SearchResponse(results=results)
+```
+
+## Request/Response Model
+```python
+class SearchRequest(BaseModel):
+    query: str
+    doc_type: str = "parts_catalog"
+    engines: list[str] = ["google", "brave"]
+    languages: list[str] = ["en", "tr"]
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "volvo ec210 parts catalog",
+                "doc_type": "parts_catalog"
+            }
+        }
+
+class SearchResponse(BaseModel):
+    results: list[dict]
+    total_count: int
+    cached: bool = False
+```
+
+## Error Response
+```python
+# Tutarlı Türkçe hata mesajları
+raise HTTPException(
+    status_code=400,
+    detail={"message": "Geçersiz arama sorgusu", "code": "INVALID_QUERY"}
+)
+
+raise HTTPException(
+    status_code=401,
+    detail={"message": "Oturum süresi doldu", "code": "TOKEN_EXPIRED"}
+)
+
+raise HTTPException(
+    status_code=403,
+    detail={"message": "Yetersiz kredi", "code": "INSUFFICIENT_CREDITS"}
+)
+```
+
+## Dependency Injection
+```python
+# Mevcut dependency'ler
+from src.dependencies import (
+    get_current_user_optional,  # Optional[User]
+    get_current_user,           # User (zorunlu)
+    get_admin_user,             # Admin kontrolü
+    get_client_ip,              # IP adresi
+    get_user_agent              # User agent
+)
+```
+
+## Pagination
+```python
+@app.get("/api/results")
+async def get_results(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+) -> PaginatedResponse:
+    offset = (page - 1) * limit
+    # ...
+```
+
+## API Endpoint'leri
+
+### Arama
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| POST | /api/multi-search | Ana arama (tüm motorlar) |
+| GET | /api/search/premium | Premium siteler (Firecrawl) |
+| GET | /api/brands | Marka listesi |
+| GET | /api/categories | Kategori listesi |
+
+### 🆕 Kaynak Keşif (Source Discovery)
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| POST | /api/sources/extract | Sonuçlardan benzersiz domain çıkar |
+| GET | /api/sources/{domain}/scan | SSE ile kaynak tara (gerçek zamanlı) |
+| POST | /api/sources/scan | Senkron kaynak tarama |
+| POST | /api/sources/scan-multiple | Toplu kaynak tarama |
+| POST | /api/sources/filter-by-size | Boyut filtresi uygula |
+
+### Admin - Kaynak Tarama
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| GET | /api/admin/sources | Tüm kaynaklar |
+| GET | /api/admin/sources/stats | İstatistikler |
+| POST | /api/admin/sources/{id}/scan | Tek kaynak tara |
+| POST | /api/admin/sources/scan-all-pending | Tümünü tara |
+| GET | /api/admin/sources/{id}/pdfs | Bulunan PDF'ler |
+| DELETE | /api/admin/sources/{id} | Sil |
+| POST | /api/admin/sources/{id}/reset | Pending'e döndür |
+
+### Admin - Diğer
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| GET | /api/admin/dashboard | Dashboard stats |
+| GET | /api/admin/users | Kullanıcı listesi |
+| POST | /api/admin/credit-requests/{id} | Kredi onay/red |
+
+## Multi-Search Request
+```python
+class MultiSearchRequest(BaseModel):
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    query_text: Optional[str] = None
+    category: str = "parts_catalog"
+    doc_type: Optional[str] = None  # Geriye uyumluluk
+    engines: Optional[list[str]] = None  # None = tümü
+    languages: Optional[list[str]] = None
+    size_filter: Optional[str] = None
+    use_cache: bool = True
+```
+
+## SSE (Server-Sent Events) Örneği
+```python
+# Kaynak tarama SSE endpoint
+from sse_starlette.sse import EventSourceResponse
+
+@app.get("/api/sources/{domain}/scan")
+async def scan_source_sse(domain: str, paths: str = ""):
+    async def event_generator():
+        async for event in discovery.scan_domain_stream(source):
+            yield {
+                "event": event["type"],  # progress, pdfs, complete, error
+                "data": json.dumps(event["data"])
+            }
+    return EventSourceResponse(event_generator())
+```

@@ -1,0 +1,190 @@
+---
+description: Frontend kuralları - HTML, JS, Tailwind
+globs: "frontend/**/*.html"
+alwaysApply: false
+---
+
+# Frontend Kuralları
+
+## Framework
+- **Vanilla JS ONLY** - React/Vue/Angular YASAK
+- **Tailwind CSS** - Inline style YASAK
+- **Material Symbols** - İkon seti
+
+## Renk Paleti
+```css
+/* Ana renkler */
+--primary: #FFC500;        /* Sarı/Gold */
+--primary-dark: #dcb005;
+--bg-dark: #0A0A0A;
+--bg-surface: #161616;
+--bg-card: #1a1a1a;
+--text-primary: #E0E0E0;
+--text-secondary: #888888;
+--border: #333333;
+--success: #22c55e;
+--error: #ef4444;
+```
+
+## Tailwind Kullanımı
+```html
+<!-- Buton -->
+<button class="bg-[#FFC500] hover:bg-[#dcb005] text-black font-semibold 
+               px-6 py-3 rounded-lg transition-all">
+    Ara
+</button>
+
+<!-- Kart -->
+<div class="bg-[#1a1a1a] border border-[#333] rounded-xl p-6">
+    ...
+</div>
+
+<!-- Input -->
+<input class="w-full bg-[#161616] border border-[#333] rounded-lg 
+              px-4 py-3 text-white focus:border-[#FFC500] 
+              focus:outline-none transition-all">
+```
+
+## Fetch API Pattern
+```javascript
+async function apiCall(endpoint, method = 'GET', data = null) {
+    const token = localStorage.getItem('token');
+    
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+    };
+    
+    if (data) {
+        options.body = JSON.stringify(data);
+    }
+    
+    const response = await fetch(`/api${endpoint}`, options);
+    
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail?.message || 'Bir hata oluştu');
+    }
+    
+    return response.json();
+}
+```
+
+## Admin Panel (admin.html)
+
+### Sidebar Bölümleri
+| Section ID | Menü | Açıklama |
+|------------|------|----------|
+| dashboard | Dashboard | Ana istatistikler |
+| users | Kullanıcılar | Kullanıcı yönetimi |
+| api-settings | API Ayarları | API key'ler |
+| credit-requests | Kredi Talepleri | Onay/red |
+| source-scan | Kaynakları Tara | Bekleyen taramalar |
+| scan-history | Yapıldı | Tamamlanan taramalar |
+
+### Kaynak Tarama Fonksiyonları
+```javascript
+// Kaynakları yükle
+loadSources()
+
+// Tek kaynak tara
+scanSource(id)
+
+// Tümünü tara
+scanAllPending()
+
+// Geçmişi yükle
+loadScanHistory()
+
+// PDF'leri göster (modal)
+viewSourcePdfs(sourceId, sourceName)
+
+// Tekrar tara
+rescanSource(id)
+```
+
+## Search Page (search.html)
+
+### Tab Yapısı (5 Tab)
+| Tab ID | Açıklama |
+|--------|----------|
+| tab-all | Tüm sonuçlar |
+| tab-free | Ücretsiz PDF'ler |
+| tab-premium | Premium siteler (Scribd, Issuu) |
+| tab-sources | 🆕 Benzersiz kaynaklar (domain listesi) |
+| tab-source-results | 🆕 Taranan kaynak sonuçları |
+
+### 🆕 Kaynak Keşif Fonksiyonları
+```javascript
+// Sonuçlardan kaynak çıkar (arama sonrası otomatik çağrılır)
+extractSources(results)
+
+// Tek kaynak tara (SSE ile)
+scanSingleSource(index)
+
+// Tüm kaynakları tara
+scanAllSources()
+
+// Kaynak tablosunu güncelle
+renderSourcesTable()
+
+// Kaynak sonuçlarını listele
+renderSourceResultsList()
+
+// Boyut filtresi
+filterSourceResults()
+```
+
+### 🆕 SSE (Server-Sent Events) Pattern
+```javascript
+// Gerçek zamanlı kaynak tarama
+const eventSource = new EventSource(`/api/sources/${domain}/scan?paths=${paths}`);
+
+eventSource.addEventListener('progress', (e) => {
+    const data = JSON.parse(e.data);
+    updateSourceProgress(data.progress, data.message);
+});
+
+eventSource.addEventListener('pdfs', (e) => {
+    const data = JSON.parse(e.data);
+    allSourceResults.push(...data.pdfs);
+});
+
+eventSource.addEventListener('complete', (e) => {
+    eventSource.close();
+    renderSourceResultsList();
+});
+
+eventSource.onerror = () => {
+    eventSource.close();
+    showError('Bağlantı hatası');
+};
+```
+
+## UI Metinleri (Türkçe)
+```javascript
+const UI_TEXT = {
+    loading: 'Yükleniyor...',
+    error: 'Bir hata oluştu',
+    success: 'İşlem başarılı',
+    noResults: 'Sonuç bulunamadı',
+    login: 'Giriş Yap',
+    register: 'Kayıt Ol',
+    search: 'Ara',
+    credits: 'Kredi',
+    scan: 'Tara',
+    pending: 'Bekleyen',
+    completed: 'Tamamlandı'
+};
+```
+
+## Responsive
+```html
+<!-- Mobile-first -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    ...
+</div>
+```

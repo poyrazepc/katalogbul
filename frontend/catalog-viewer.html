@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html class="dark" lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Yönetimi - MakineParça</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFC500",
+                        "primary-hover": "#e6b200",
+                        "background-dark": "#0A0A0A",
+                        "surface-dark": "#161616",
+                        "surface-light": "#27272a",
+                        "border-dark": "#3f3f46",
+                        "text-main": "#f4f4f5",
+                        "text-muted": "#a1a1aa",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    backgroundImage: {
+                        'hazard-stripe': "repeating-linear-gradient(45deg, #FFC500, #FFC500 10px, #000000 10px, #000000 20px)",
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #0A0A0A; 
+            color: #f4f4f5; 
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #161616; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        
+        /* Sidebar */
+        .sidebar { 
+            width: 300px; 
+            height: 100vh; 
+            overflow-y: auto; 
+            border-right: 1px solid #3f3f46;
+            resize: horizontal;
+            min-width: 250px;
+            max-width: 500px;
+        }
+        
+        .content-area { height: 100vh; overflow-y: auto; }
+        
+        /* Category Items */
+        .category-item { 
+            cursor: pointer; 
+            transition: all 0.15s;
+            padding: 0.5rem 0.75rem;
+            border-left: 3px solid transparent;
+        }
+        .category-item:hover { 
+            background: rgba(255, 197, 0, 0.1); 
+            border-left-color: #FFC500; 
+        }
+        .category-item.active { 
+            background: rgba(255, 197, 0, 0.15); 
+            border-left-color: #FFC500; 
+        }
+        .category-parent {
+            font-weight: 600;
+            color: #FFC500;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+        }
+        .category-parent:hover { background: rgba(255, 197, 0, 0.05); }
+        
+        /* Parts Table */
+        .parts-table { font-size: 13px; }
+        .parts-table th { 
+            background: #161616; 
+            color: #a1a1aa;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+        .parts-table td { border-bottom: 1px solid #27272a; }
+        .parts-table tr:hover td { background: rgba(255, 197, 0, 0.05); }
+        
+        /* Cart Badge */
+        .cart-badge { position: fixed; bottom: 20px; right: 20px; }
+        
+        /* Diagram Container */
+        #diagram-container { 
+            background: #ffffff; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            min-height: 400px;
+            max-height: 600px;
+        }
+        #diagram-container img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed #FFC500;
+            transition: all 0.3s;
+        }
+        .drop-zone.dragover {
+            background: rgba(255, 197, 0, 0.1);
+            border-color: #fff;
+        }
+        
+        /* Progress Bar */
+        .progress-bar { transition: width 0.3s ease; }
+        
+        /* Catalog Card */
+        .catalog-card {
+            border: 1px solid #3f3f46;
+            transition: all 0.2s;
+        }
+        .catalog-card:hover { 
+            border-color: #FFC500; 
+            box-shadow: 0 0 20px rgba(255, 197, 0, 0.1);
+        }
+        
+        /* Toggle Icon */
+        .toggle-icon { transition: transform 0.2s; }
+        .toggle-icon.open { transform: rotate(90deg); }
+        
+        /* Industrial Corner Effect */
+        .industrial-corner {
+            position: relative;
+        }
+        .industrial-corner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            border-top: 2px solid #FFC500;
+            border-left: 2px solid #FFC500;
+            border-top-left-radius: 4px;
+        }
+        .industrial-corner::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            border-bottom: 2px solid #FFC500;
+            border-right: 2px solid #FFC500;
+            border-bottom-right-radius: 4px;
+        }
+        
+        /* Button Styles */
+        .btn-primary {
+            background: #FFC500;
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 4px 0 rgb(0,0,0);
+            transition: all 0.1s;
+        }
+        .btn-primary:hover {
+            background: #e6b200;
+        }
+        .btn-primary:active {
+            box-shadow: none;
+            transform: translateY(4px);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-text-main font-sans antialiased selection:bg-primary selection:text-black">
+    <!-- Hazard Stripe Top -->
+    <div class="h-1.5 w-full bg-hazard-stripe opacity-80"></div>
+    
+    <div id="app">
+        <!-- GÖRÜNÜM 1: Katalog Listesi ve Yükleme -->
+        <div id="view-list" class="min-h-screen">
+            <!-- Header -->
+            <header class="sticky top-0 z-50 border-b border-border-dark bg-surface-dark/90 backdrop-blur-md">
+                <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-primary text-black p-2 rounded-lg shadow-lg shadow-primary/20">
+                            <span class="material-symbols-outlined text-2xl">construction</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-lg font-black tracking-tight text-white leading-none uppercase">Makine<span class="text-primary">Parça</span></span>
+                            <span class="text-[10px] font-bold text-text-muted tracking-widest uppercase font-mono">KATALOG YÖNETİMİ</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <a href="/" class="flex items-center gap-2 text-sm text-text-muted hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-lg">home</span>
+                            Ana Sayfa
+                        </a>
+                        <a href="/dashboard.html" class="flex items-center gap-2 text-sm text-text-muted hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-lg">dashboard</span>
+                            Panel
+                        </a>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="max-w-7xl mx-auto px-6 py-8">
+                <!-- Page Title -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-black uppercase tracking-tight">Katalog <span class="text-primary">Yönetimi</span></h1>
+                    <p class="text-text-muted mt-2">PDF parça kataloglarınızı yükleyin ve yönetin</p>
+                </div>
+                
+                <!-- Upload Alanı -->
+                <div class="mb-8">
+                    <div 
+                        id="drop-zone" 
+                        class="drop-zone rounded-xl p-12 text-center cursor-pointer industrial-corner bg-surface-dark"
+                        onclick="document.getElementById('file-input').click()"
+                    >
+                        <input type="file" id="file-input" accept=".pdf" class="hidden" onchange="handleFileSelect(event)" />
+                        <span class="material-symbols-outlined text-6xl text-primary mb-4">upload_file</span>
+                        <p class="text-xl font-bold mb-2">PDF Katalog Yükle</p>
+                        <p class="text-text-muted">Dosyayı sürükleyip bırakın veya tıklayarak seçin</p>
+                        <p class="text-xs text-text-muted mt-3 font-mono">Maksimum: 100MB • Sadece PDF</p>
+                    </div>
+                </div>
+                
+                <!-- İlerleme Durumu -->
+                <div id="upload-progress" class="hidden mb-8 bg-surface-dark rounded-xl p-6 border border-border-dark industrial-corner">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary animate-spin">sync</span>
+                            <h3 class="font-bold" id="progress-title">Yükleniyor...</h3>
+                        </div>
+                        <span id="progress-percent" class="text-primary font-bold font-mono">0%</span>
+                    </div>
+                    <div class="w-full bg-surface-light rounded-full h-2">
+                        <div id="progress-bar" class="progress-bar bg-primary h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-message" class="text-sm text-text-muted mt-3 font-mono"></p>
+                </div>
+                
+                <!-- Katalog Listesi -->
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">folder_open</span>
+                            Kataloglarım
+                        </h2>
+                        <span class="text-xs font-mono text-text-muted bg-surface-light px-3 py-1 rounded-full border border-border-dark">
+                            <span id="catalog-count">0</span> katalog
+                        </span>
+                    </div>
+                    <div id="catalog-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="col-span-full text-center text-text-muted py-16 bg-surface-dark rounded-xl border border-border-dark">
+                            <span class="material-symbols-outlined text-5xl mb-3 opacity-50">inventory_2</span>
+                            <p class="font-medium">Henüz katalog yüklemediniz</p>
+                            <p class="text-sm mt-1">Yukarıdaki alana PDF dosyanızı sürükleyin</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- GÖRÜNÜM 2: Katalog Viewer -->
+        <div id="view-catalog" class="hidden">
+            <div class="flex h-screen">
+                <!-- Sol Sidebar: Kategoriler -->
+                <aside class="sidebar bg-surface-dark flex flex-col">
+                    <!-- Sidebar Header -->
+                    <div class="p-4 border-b border-border-dark bg-[#111]">
+                        <button onclick="showListView()" class="flex items-center gap-2 text-sm text-text-muted hover:text-primary transition-colors mb-3">
+                            <span class="material-symbols-outlined text-lg">arrow_back</span>
+                            Kataloglara Dön
+                        </button>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-primary text-black p-2 rounded">
+                                <span class="material-symbols-outlined">auto_stories</span>
+                            </div>
+                            <div class="overflow-hidden">
+                                <h2 class="text-sm font-bold text-white truncate">Parts Catalog</h2>
+                                <p id="catalog-name" class="text-[10px] text-text-muted truncate font-mono">Yükleniyor...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search -->
+                    <div class="p-4 border-b border-border-dark">
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-lg">search</span>
+                            <input 
+                                type="text" 
+                                id="search-category" 
+                                placeholder="Kategori ara..."
+                                class="w-full pl-10 pr-4 py-2.5 bg-surface-light border border-border-dark rounded-lg text-sm focus:outline-none focus:border-primary text-white placeholder:text-text-muted"
+                                oninput="filterCategories(this.value)"
+                            />
+                        </div>
+                    </div>
+                    
+                    <!-- Category List -->
+                    <div id="category-list" class="flex-1 overflow-y-auto p-2">
+                        <p class="text-text-muted text-sm p-3 text-center">Kategoriler yükleniyor...</p>
+                    </div>
+                    
+                    <!-- Sidebar Footer -->
+                    <div class="p-3 border-t border-border-dark bg-[#111] text-xs text-text-muted font-mono flex items-center justify-between">
+                        <span class="flex items-center gap-1.5">
+                            <span class="size-2 rounded-full bg-green-500 animate-pulse"></span> 
+                            Aktif
+                        </span>
+                        <span>v2.0</span>
+                    </div>
+                </aside>
+                
+                <!-- Sağ İçerik: Diyagram + Parça Listesi -->
+                <main class="content-area flex-1 p-6 bg-background-dark">
+                    <!-- Üst: Diyagram -->
+                    <div class="bg-surface-dark rounded-xl border border-border-dark p-4 mb-6 industrial-corner">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">image</span>
+                                Diyagram
+                            </h3>
+                            <div class="flex gap-2">
+                                <button onclick="zoomIn()" class="px-3 py-1.5 bg-surface-light border border-border-dark rounded text-sm hover:border-primary transition-colors flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">zoom_in</span>
+                                </button>
+                                <button onclick="zoomOut()" class="px-3 py-1.5 bg-surface-light border border-border-dark rounded text-sm hover:border-primary transition-colors flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">zoom_out</span>
+                                </button>
+                                <button onclick="resetZoom()" class="px-3 py-1.5 bg-surface-light border border-border-dark rounded text-sm hover:border-primary transition-colors">
+                                    Sıfırla
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-auto rounded-lg" id="diagram-container" style="max-height: 500px;">
+                            <p class="text-text-muted">Kategori seçin...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Alt: Parça Listesi -->
+                    <div class="bg-surface-dark rounded-xl border border-border-dark p-4 industrial-corner" style="max-height: 350px; display: flex; flex-direction: column;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">list_alt</span>
+                                Parça Listesi
+                            </h3>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-base">search</span>
+                                <input 
+                                    type="text" 
+                                    id="search-parts" 
+                                    placeholder="Parça ara..."
+                                    class="pl-9 pr-4 py-2 bg-surface-light border border-border-dark rounded text-sm focus:outline-none focus:border-primary w-56"
+                                />
+                            </div>
+                        </div>
+                        <div class="overflow-auto flex-1 rounded-lg border border-border-dark">
+                            <table class="parts-table w-full">
+                                <thead class="sticky top-0">
+                                    <tr>
+                                        <th class="p-2.5 text-left w-12"></th>
+                                        <th class="p-2.5 text-left w-14">Item</th>
+                                        <th class="p-2.5 text-left">Part No.</th>
+                                        <th class="p-2.5 text-left">Açıklama</th>
+                                        <th class="p-2.5 text-left w-16">Adet</th>
+                                        <th class="p-2.5 text-left w-14">Not</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="parts-list">
+                                    <tr>
+                                        <td colspan="6" class="p-6 text-center text-text-muted">Kategori seçin...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </main>
+            </div>
+            
+            <!-- Sepet Badge -->
+            <button 
+                onclick="toggleCart()" 
+                class="cart-badge bg-primary text-black rounded-full w-16 h-16 flex items-center justify-center shadow-2xl shadow-primary/30 font-bold hover:scale-110 transition-transform"
+            >
+                <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+                <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold">0</span>
+            </button>
+            
+            <!-- Sepet Modal -->
+            <div id="cart-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+                <div class="bg-surface-dark rounded-2xl border border-border-dark p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto industrial-corner">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-black flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary">shopping_cart</span>
+                            Sepetim
+                        </h2>
+                        <button onclick="toggleCart()" class="text-text-muted hover:text-white text-2xl">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <div id="cart-items" class="space-y-2 mb-6">
+                        <p class="text-text-muted text-center py-8">Sepet boş</p>
+                    </div>
+                    <div class="flex gap-3 pt-4 border-t border-border-dark">
+                        <button onclick="exportCart()" class="flex-1 btn-primary py-3 rounded-lg flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">download</span>
+                            Export CSV
+                        </button>
+                        <button onclick="clearCart()" class="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors flex items-center gap-2">
+                            <span class="material-symbols-outlined">delete</span>
+                            Temizle
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentCatalogId = null;
+        let currentZoom = 1.0;
+        let cart = [];
+        let allCategories = [];
+        
+        // ============================================
+        // AUTH
+        // ============================================
+        
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+        
+        function getAuthHeaders() {
+            const token = getAuthToken();
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+        
+        // ============================================
+        // GÖRÜNÜM YÖNETİMİ
+        // ============================================
+        
+        function showListView() {
+            document.getElementById('view-list').classList.remove('hidden');
+            document.getElementById('view-catalog').classList.add('hidden');
+            loadCatalogList();
+        }
+        
+        function showCatalogView(catalogId) {
+            currentCatalogId = catalogId;
+            document.getElementById('view-list').classList.add('hidden');
+            document.getElementById('view-catalog').classList.remove('hidden');
+            loadCatalog(catalogId);
+        }
+        
+        // ============================================
+        // KATALOG LİSTESİ
+        // ============================================
+        
+        async function loadCatalogList() {
+            try {
+                const response = await fetch(`${API_BASE}/catalogs`, {
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.status === 401) {
+                    window.location.href = '/login.html?redirect=catalogs';
+                    return;
+                }
+                
+                const data = await response.json();
+                document.getElementById('catalog-count').textContent = data.total || 0;
+                renderCatalogList(data.items || []);
+            } catch (error) {
+                console.error('Katalog listesi yüklenemedi:', error);
+            }
+        }
+        
+        function renderCatalogList(catalogs) {
+            const container = document.getElementById('catalog-list');
+            
+            if (catalogs.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center text-text-muted py-16 bg-surface-dark rounded-xl border border-border-dark">
+                        <span class="material-symbols-outlined text-5xl mb-3 opacity-50">inventory_2</span>
+                        <p class="font-medium">Henüz katalog yüklemediniz</p>
+                        <p class="text-sm mt-1">Yukarıdaki alana PDF dosyanızı sürükleyin</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = catalogs.map(cat => `
+                <div class="catalog-card bg-surface-dark rounded-xl p-5 cursor-pointer" onclick="openCatalog(${cat.id}, '${cat.status}')">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="bg-surface-light p-3 rounded-lg">
+                            <span class="material-symbols-outlined text-2xl ${cat.status === 'completed' ? 'text-green-400' : cat.status === 'analyzing' ? 'text-primary' : 'text-text-muted'}">${getStatusIcon(cat.status)}</span>
+                        </div>
+                        <span class="text-[10px] px-2 py-1 rounded font-mono font-bold ${getStatusClass(cat.status)}">${getStatusText(cat.status)}</span>
+                    </div>
+                    <h3 class="font-bold truncate mb-1 text-white">${cat.original_name}</h3>
+                    <p class="text-sm text-primary font-medium">${cat.brand || ''} ${cat.model || ''}</p>
+                    <div class="flex items-center gap-4 mt-4 text-xs text-text-muted font-mono">
+                        <span class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">description</span>
+                            ${cat.total_pages} sayfa
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">hard_drive</span>
+                            ${formatFileSize(cat.file_size)}
+                        </span>
+                    </div>
+                    ${cat.status === 'analyzing' ? `
+                        <div class="mt-4">
+                            <div class="w-full bg-surface-light rounded-full h-1.5">
+                                <div class="bg-primary h-1.5 rounded-full transition-all" style="width: ${cat.progress}%"></div>
+                            </div>
+                            <p class="text-[10px] text-text-muted mt-2 font-mono">${cat.progress_message || 'Analiz ediliyor...'}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+        
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'completed': return 'check_circle';
+                case 'analyzing': return 'sync';
+                case 'failed': return 'error';
+                default: return 'hourglass_empty';
+            }
+        }
+        
+        function getStatusClass(status) {
+            switch(status) {
+                case 'completed': return 'bg-green-900/50 text-green-400 border border-green-800';
+                case 'analyzing': return 'bg-yellow-900/50 text-yellow-400 border border-yellow-800';
+                case 'failed': return 'bg-red-900/50 text-red-400 border border-red-800';
+                default: return 'bg-surface-light text-text-muted border border-border-dark';
+            }
+        }
+        
+        function getStatusText(status) {
+            switch(status) {
+                case 'completed': return 'HAZIR';
+                case 'analyzing': return 'ANALİZ';
+                case 'failed': return 'HATA';
+                default: return 'BEKLEMEDE';
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (!bytes) return '-';
+            const mb = bytes / (1024 * 1024);
+            return mb.toFixed(1) + ' MB';
+        }
+        
+        function openCatalog(catalogId, status) {
+            if (status === 'completed') {
+                showCatalogView(catalogId);
+            } else if (status === 'analyzing') {
+                alert('Katalog henüz analiz ediliyor. Lütfen bekleyin.');
+            } else if (status === 'failed') {
+                alert('Bu katalogda bir hata oluştu.');
+            } else {
+                alert('Katalog henüz işlenmeye başlamadı.');
+            }
+        }
+        
+        // ============================================
+        // DOSYA YÜKLEME
+        // ============================================
+        
+        const dropZone = document.getElementById('drop-zone');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                uploadFile(files[0]);
+            } else {
+                alert('Lütfen bir PDF dosyası yükleyin.');
+            }
+        });
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        }
+        
+        async function uploadFile(file) {
+            if (!getAuthToken()) {
+                alert('Katalog yüklemek için giriş yapmanız gerekiyor.');
+                window.location.href = '/login.html?redirect=catalogs';
+                return;
+            }
+            
+            if (file.size > 100 * 1024 * 1024) {
+                alert('Dosya boyutu 100MB\'ı aşamaz.');
+                return;
+            }
+            
+            showProgress('Yükleniyor...', 0, `${file.name} yükleniyor...`);
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch(`${API_BASE}/catalogs/upload`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: formData
+                });
+                
+                if (response.status === 401) {
+                    hideProgress();
+                    window.location.href = '/login.html?redirect=catalogs';
+                    return;
+                }
+                
+                if (response.status === 402) {
+                    hideProgress();
+                    alert('Yetersiz kredi. Lütfen kredi satın alın.');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    trackProgress(data.catalog_id);
+                } else {
+                    hideProgress();
+                    alert('Yükleme hatası: ' + (data.detail || 'Bilinmeyen hata'));
+                }
+            } catch (error) {
+                hideProgress();
+                console.error('Yükleme hatası:', error);
+                alert('Yükleme sırasında bir hata oluştu.');
+            }
+        }
+        
+        function showProgress(title, percent, message) {
+            document.getElementById('upload-progress').classList.remove('hidden');
+            document.getElementById('progress-title').textContent = title;
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-message').textContent = message;
+        }
+        
+        function hideProgress() {
+            document.getElementById('upload-progress').classList.add('hidden');
+        }
+        
+        function trackProgress(catalogId) {
+            const eventSource = new EventSource(`${API_BASE}/catalogs/${catalogId}/progress`);
+            
+            eventSource.addEventListener('progress', (event) => {
+                const data = JSON.parse(event.data);
+                
+                showProgress(
+                    data.status === 'analyzing' ? 'Analiz Ediliyor...' : 'İşlem Tamamlandı',
+                    data.progress,
+                    data.message
+                );
+                
+                if (data.status === 'completed') {
+                    eventSource.close();
+                    setTimeout(() => {
+                        hideProgress();
+                        loadCatalogList();
+                    }, 1000);
+                } else if (data.status === 'failed') {
+                    eventSource.close();
+                    hideProgress();
+                    alert('Analiz sırasında hata oluştu: ' + (data.error || data.message));
+                    loadCatalogList();
+                }
+            });
+            
+            eventSource.onerror = () => {
+                eventSource.close();
+                hideProgress();
+                loadCatalogList();
+            };
+        }
+        
+        // ============================================
+        // KATALOG GÖRÜNTÜLEME
+        // ============================================
+        
+        async function loadCatalog(catalogId) {
+            try {
+                const infoRes = await fetch(`${API_BASE}/catalogs/${catalogId}`, {
+                    headers: getAuthHeaders()
+                });
+                const catalog = await infoRes.json();
+                
+                document.getElementById('catalog-name').textContent = 
+                    `${catalog.brand || ''} ${catalog.model || ''} - ${catalog.original_name}`.trim();
+                
+                const tocRes = await fetch(`${API_BASE}/catalogs/${catalogId}/toc`, {
+                    headers: getAuthHeaders()
+                });
+                const toc = await tocRes.json();
+                
+                allCategories = toc;
+                renderCategories(toc);
+                
+            } catch (error) {
+                console.error('Katalog yüklenemedi:', error);
+            }
+        }
+        
+        function renderCategories(categories, level = 0) {
+            const container = document.getElementById('category-list');
+            
+            if (level === 0) {
+                container.innerHTML = '';
+            }
+            
+            if (!categories || categories.length === 0) {
+                if (level === 0) {
+                    container.innerHTML = '<p class="text-text-muted text-sm p-3 text-center">Kategori bulunamadı</p>';
+                }
+                return;
+            }
+            
+            let html = '';
+            
+            categories.forEach((cat, idx) => {
+                const hasChildren = cat.children && cat.children.length > 0;
+                const indent = level * 16;
+                const catId = `cat-${cat.page}-${level}-${idx}`;
+                
+                html += `
+                    <div class="category-wrapper" data-title="${cat.title.toLowerCase()}">
+                        <div class="category-item flex items-center text-sm rounded" 
+                             style="padding-left: ${8 + indent}px;"
+                             data-page="${cat.page}"
+                             onclick="toggleCategory('${catId}', ${cat.page}, ${hasChildren})">
+                            ${hasChildren ? `<span class="toggle-icon mr-2 text-primary text-xs" id="icon-${catId}">▶</span>` : '<span class="w-4"></span>'}
+                            <span class="flex-1 truncate">${cat.title}</span>
+                        </div>
+                        ${hasChildren ? `<div id="children-${catId}" class="hidden">${renderCategoryChildren(cat.children, level + 1)}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            if (level === 0) {
+                container.innerHTML = html;
+            }
+            
+            return html;
+        }
+        
+        function renderCategoryChildren(categories, level) {
+            let html = '';
+            
+            categories.forEach((cat, idx) => {
+                const hasChildren = cat.children && cat.children.length > 0;
+                const indent = level * 16;
+                const catId = `cat-${cat.page}-${level}-${idx}`;
+                
+                html += `
+                    <div class="category-wrapper" data-title="${cat.title.toLowerCase()}">
+                        <div class="category-item flex items-center text-sm rounded" 
+                             style="padding-left: ${8 + indent}px;"
+                             data-page="${cat.page}"
+                             onclick="toggleCategory('${catId}', ${cat.page}, ${hasChildren})">
+                            ${hasChildren ? `<span class="toggle-icon mr-2 text-primary text-xs" id="icon-${catId}">▶</span>` : '<span class="w-4"></span>'}
+                            <span class="flex-1 truncate">${cat.title}</span>
+                        </div>
+                        ${hasChildren ? `<div id="children-${catId}" class="hidden">${renderCategoryChildren(cat.children, level + 1)}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+        
+        function toggleCategory(catId, pageNum, hasChildren) {
+            document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
+            event.target.closest('.category-item').classList.add('active');
+            
+            if (hasChildren) {
+                const children = document.getElementById(`children-${catId}`);
+                const icon = document.getElementById(`icon-${catId}`);
+                
+                if (children) {
+                    children.classList.toggle('hidden');
+                    icon.classList.toggle('open');
+                }
+            }
+            
+            if (pageNum !== null) {
+                loadDiagram(pageNum);
+                loadParts(pageNum);
+            }
+        }
+        
+        function filterCategories(query) {
+            const wrappers = document.querySelectorAll('.category-wrapper');
+            query = query.toLowerCase();
+            
+            wrappers.forEach(wrapper => {
+                const title = wrapper.dataset.title;
+                if (title.includes(query)) {
+                    wrapper.style.display = '';
+                } else {
+                    wrapper.style.display = 'none';
+                }
+            });
+        }
+        
+        function loadDiagram(pageNum) {
+            const container = document.getElementById('diagram-container');
+            container.innerHTML = `
+                <img 
+                    src="${API_BASE}/catalogs/${currentCatalogId}/pages/${pageNum}/image" 
+                    alt="Diyagram" 
+                    style="transform: scale(${currentZoom}); transition: transform 0.2s;"
+                    onerror="this.parentElement.innerHTML='<p class=\"text-text-muted\">Görsel yüklenemedi</p>'"
+                />
+            `;
+        }
+        
+        async function loadParts(pageNum) {
+            try {
+                const response = await fetch(`${API_BASE}/catalogs/${currentCatalogId}/pages/${pageNum}/parts`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                
+                const tbody = document.getElementById('parts-list');
+                
+                if (!data.parts || data.parts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-text-muted">Bu sayfada parça bulunamadı</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.parts.map(part => `
+                    <tr class="hover:bg-primary/5">
+                        <td class="p-2.5">
+                            <button 
+                                onclick='addToCart("${part.part_no}", "${(part.description || '').replace(/"/g, '&quot;')}")' 
+                                class="w-7 h-7 bg-primary text-black rounded font-bold hover:bg-primary-hover transition-colors flex items-center justify-center"
+                            >
+                                <span class="material-symbols-outlined text-lg">add</span>
+                            </button>
+                        </td>
+                        <td class="p-2.5 text-text-muted font-mono">${part.item || '-'}</td>
+                        <td class="p-2.5 font-mono text-primary font-medium">${part.part_no || '-'}</td>
+                        <td class="p-2.5">${part.description || '-'}</td>
+                        <td class="p-2.5 font-mono">${part.qty || 1}</td>
+                        <td class="p-2.5 text-text-muted">${part.l || ''}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Parçalar yüklenemedi:', error);
+            }
+        }
+        
+        // ============================================
+        // SEPET
+        // ============================================
+        
+        function addToCart(partNumber, description) {
+            const existing = cart.find(item => item.partNumber === partNumber);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ partNumber, description, quantity: 1 });
+            }
+            updateCartBadge();
+        }
+        
+        function updateCartBadge() {
+            document.getElementById('cart-count').textContent = cart.length;
+        }
+        
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderCart();
+            }
+        }
+        
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="text-text-muted text-center py-8">Sepet boş</p>';
+                return;
+            }
+            
+            container.innerHTML = cart.map((item, idx) => `
+                <div class="flex items-center justify-between p-4 bg-surface-light rounded-lg border border-border-dark">
+                    <div class="flex-1 overflow-hidden">
+                        <div class="font-mono text-primary font-bold">${item.partNumber}</div>
+                        <div class="text-sm text-text-muted truncate">${item.description}</div>
+                    </div>
+                    <div class="flex items-center gap-3 ml-4">
+                        <input type="number" value="${item.quantity}" min="1" 
+                               onchange="updateCartQty(${idx}, this.value)"
+                               class="w-16 px-2 py-1.5 bg-surface-dark border border-border-dark rounded text-sm text-center font-mono" />
+                        <button onclick="removeFromCart(${idx})" class="text-red-400 hover:text-red-300 p-1">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateCartQty(index, qty) {
+            cart[index].quantity = parseInt(qty) || 1;
+        }
+        
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartBadge();
+            renderCart();
+        }
+        
+        function clearCart() {
+            if (confirm('Sepeti temizlemek istediğinize emin misiniz?')) {
+                cart = [];
+                updateCartBadge();
+                renderCart();
+            }
+        }
+        
+        function exportCart() {
+            if (cart.length === 0) {
+                alert('Sepet boş');
+                return;
+            }
+            
+            let csv = 'Part Number,Description,Quantity\n';
+            cart.forEach(item => {
+                csv += `"${item.partNumber}","${item.description}",${item.quantity}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'parts-list.csv';
+            a.click();
+        }
+        
+        // Zoom
+        function zoomIn() { currentZoom = Math.min(3, currentZoom + 0.2); applyZoom(); }
+        function zoomOut() { currentZoom = Math.max(0.5, currentZoom - 0.2); applyZoom(); }
+        function resetZoom() { currentZoom = 1.0; applyZoom(); }
+        
+        function applyZoom() {
+            const img = document.querySelector('#diagram-container img');
+            if (img) {
+                img.style.transform = `scale(${currentZoom})`;
+            }
+        }
+        
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const catalogId = params.get('id');
+            
+            if (catalogId) {
+                showCatalogView(parseInt(catalogId));
+            } else {
+                loadCatalogList();
+            }
+        });
+    </script>
+</body>
+</html>

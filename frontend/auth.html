@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html class="dark" lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Giriş Yap / Kayıt Ol - MakineParça</title>
+    <script>
+        // Redirect to new pages
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        const redirect = urlParams.get('redirect');
+        
+        if (tab === 'register') {
+            window.location.href = redirect ? `/register.html?redirect=${redirect}` : '/register.html';
+        } else {
+            window.location.href = redirect ? `/login.html?redirect=${redirect}` : '/login.html';
+        }
+    </script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFC500",
+                        "primary-hover": "#e6b200",
+                        "background-dark": "#0A0A0A",
+                        "surface-dark": "#161616",
+                        "surface-light": "#27272a",
+                        "border-dark": "#3f3f46",
+                        "text-main": "#f4f4f5",
+                        "text-muted": "#a1a1aa",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    backgroundImage: {
+                        'hazard-stripe': "repeating-linear-gradient(45deg, #FFC500, #FFC500 10px, #000000 10px, #000000 20px)",
+                    }
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #161616; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .wireframe-grid {
+            background-image:
+                linear-gradient(to right, #ffffff0a 1px, transparent 1px),
+                linear-gradient(to bottom, #ffffff0a 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-text-main font-sans antialiased selection:bg-primary selection:text-black min-h-screen flex items-center justify-center">
+    
+    <!-- Hazard Stripe Top -->
+    <div class="fixed top-0 left-0 w-full h-1.5 bg-hazard-stripe opacity-80 z-50"></div>
+    
+    <div class="w-full max-w-6xl mx-auto px-6 py-12">
+        <div class="grid md:grid-cols-2 gap-0 bg-surface-dark rounded-xl border border-border-dark shadow-2xl overflow-hidden">
+            
+            <!-- Sol Taraf - Branding -->
+            <div class="hidden md:flex flex-col items-center justify-center p-12 border-r border-border-dark bg-gradient-to-br from-primary/5 to-surface-dark relative overflow-hidden wireframe-grid">
+                <!-- Background Glow -->
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-primary/10 rounded-full blur-[100px] opacity-30"></div>
+                
+                <div class="relative z-10 text-center">
+                    <!-- Logo -->
+                    <div class="mb-8">
+                        <div class="flex items-center justify-center gap-3 mb-4">
+                            <div class="bg-primary text-black p-3 rounded-lg shadow-lg shadow-primary/30">
+                                <span class="material-symbols-outlined text-4xl">construction</span>
+                            </div>
+                        </div>
+                        <a href="/" class="text-3xl font-black uppercase tracking-tight">
+                            Makine<span class="text-primary">Parça</span>
+                        </a>
+                        <p class="text-text-muted mt-3 text-lg">İş makinası parça ve doküman arama motoru</p>
+                    </div>
+                    
+                    <!-- Visual Element -->
+                    <div class="w-full h-64 bg-surface-dark/50 rounded-xl border border-border-dark flex items-center justify-center backdrop-blur-sm mb-8">
+                        <div class="text-center">
+                            <span class="material-symbols-outlined text-7xl text-primary/50 mb-4">search</span>
+                            <p class="text-text-muted text-sm">Yüksek teknoloji arama çözümü</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="flex justify-center gap-8 text-center">
+                        <div>
+                            <span class="text-2xl font-black text-primary">6</span>
+                            <p class="text-xs text-text-muted uppercase tracking-widest">Motor</p>
+                        </div>
+                        <div>
+                            <span class="text-2xl font-black text-primary">15</span>
+                            <p class="text-xs text-text-muted uppercase tracking-widest">Dil</p>
+                        </div>
+                        <div>
+                            <span class="text-2xl font-black text-primary">24/7</span>
+                            <p class="text-xs text-text-muted uppercase tracking-widest">Aktif</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sağ Taraf - Form Alanı -->
+            <div class="w-full">
+                <!-- Mobile Logo -->
+                <div class="md:hidden p-6 border-b border-border-dark text-center">
+                    <a href="/" class="text-2xl font-bold inline-block">
+                        Makine<span class="text-primary">Parça</span>
+                    </a>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="flex border-b border-border-dark">
+                    <button class="tab-btn active flex-1 py-4 text-center font-bold text-sm uppercase tracking-wide border-b-2 border-transparent text-primary border-b-primary" data-tab="login">
+                        <span class="material-symbols-outlined text-lg align-middle mr-1">login</span>
+                        Giriş
+                    </button>
+                    <button class="tab-btn flex-1 py-4 text-center font-bold text-sm uppercase tracking-wide border-b-2 border-transparent text-text-muted hover:text-white transition-colors" data-tab="register">
+                        <span class="material-symbols-outlined text-lg align-middle mr-1">person_add</span>
+                        Kayıt
+                    </button>
+                    <button class="tab-btn flex-1 py-4 text-center font-bold text-sm uppercase tracking-wide border-b-2 border-transparent text-text-muted hover:text-white transition-colors" data-tab="forgot">
+                        <span class="material-symbols-outlined text-lg align-middle mr-1">lock_reset</span>
+                        Şifre Sıfırla
+                    </button>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div class="p-8">
+                    <!-- Login Tab -->
+                    <div class="tab-content active" id="login-tab">
+                        <h2 class="text-2xl font-black mb-6">Hesabınıza <span class="text-primary">Giriş Yapın</span></h2>
+                        
+                        <form id="login-form" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">E-posta</label>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">mail</span>
+                                    <input 
+                                        type="email" 
+                                        name="email" 
+                                        required
+                                        class="w-full pl-12 pr-4 py-3.5 bg-background-dark border border-border-dark rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                        placeholder="ornek@email.com"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Şifre</label>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">lock</span>
+                                    <input 
+                                        type="password" 
+                                        name="password" 
+                                        required
+                                        class="w-full pl-12 pr-4 py-3.5 bg-background-dark border border-border-dark rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                class="w-full bg-primary text-black py-4 rounded-lg font-black uppercase tracking-wide hover:bg-primary-hover transition-all shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px]"
+                            >
+                                Giriş Yap
+                            </button>
+                        </form>
+                        
+                        <p class="text-center text-text-muted text-sm mt-6">
+                            Hesabınız yok mu? 
+                            <button class="text-primary hover:underline font-bold" onclick="switchTab('register')">
+                                Kayıt olun
+                            </button>
+                        </p>
+                    </div>
+                    
+                    <!-- Register Tab -->
+                    <div class="tab-content" id="register-tab">
+                        <h2 class="text-2xl font-black mb-6">Yeni <span class="text-primary">Hesap Oluştur</span></h2>
+                        
+                        <form id="register-form" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Kullanıcı Adı</label>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">person</span>
+                                    <input 
+                                        type="text" 
+                                        name="username" 
+                                        required
+                                        minlength="3"
+                                        class="w-full pl-12 pr-4 py-3.5 bg-background-dark border border-border-dark rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                        placeholder="kullaniciadi"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">E-posta</label>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">mail</span>
+                                    <input 
+                                        type="email" 
+                                        name="email" 
+                                        required
+                                        class="w-full pl-12 pr-4 py-3.5 bg-background-dark border border-border-dark rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                        placeholder="ornek@email.com"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Şifre</label>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">lock</span>
+                                    <input 
+                                        type="password" 
+                                        name="password" 
+                                        required
+                                        minlength="6"
+                                        class="w-full pl-12 pr-4 py-3.5 bg-background-dark border border-border-dark rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                                <p class="text-xs text-text-muted mt-2 font-mono">En az 6 karakter</p>
+                            </div>
+                            
+                            <div class="bg-primary/10 border border-primary/30 rounded-lg p-4 flex items-center gap-3">
+                                <span class="material-symbols-outlined text-2xl text-primary">redeem</span>
+                                <div>
+                                    <p class="text-sm font-bold text-white">Kayıt Bonusu</p>
+                                    <p class="text-xs text-text-muted">Hemen <span class="text-primary font-bold">50 Kredi</span> kazanın!</p>
+                                </div>
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                class="w-full bg-primary text-black py-4 rounded-lg font-black uppercase tracking-wide hover:bg-primary-hover transition-all shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px]"
+                            >
+                                Kayıt Ol
+                            </button>
+                        </form>
+                        
+                        <p class="text-center text-text-muted text-sm mt-6">
+                            Zaten hesabınız var mı? 
+                            <button class="text-primary hover:underline font-bold" onclick="switchTab('login')">
+                                Giriş yapın
+                            </button>
+                        </p>
+                    </div>
+                    
+                    <!-- Forgot Password Tab -->
+                    <div class="tab-content" id="forgot-tab">
+                        <h2 class="text-2xl font-black mb-6">Şifrenizi <span class="text-primary">Sıfırlayın</span></h2>
+                        
+                        <p class="text-text-muted mb-6">E-posta adresinizi girin, şifre sıfırlama bağlantısı göndereceğiz.</p>
+                        
+                        <form id="forgot-form" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">E-posta</label>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">mail</span>
+                                    <input 
+                                        type="email" 
+                                        name="email" 
+                                        required
+                                        class="w-full pl-12 pr-4 py-3.5 bg-background-dark border border-border-dark rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                        placeholder="ornek@email.com"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                class="w-full bg-primary text-black py-4 rounded-lg font-black uppercase tracking-wide hover:bg-primary-hover transition-all shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px]"
+                            >
+                                Sıfırlama Bağlantısı Gönder
+                            </button>
+                        </form>
+                        
+                        <p class="text-center text-text-muted text-sm mt-6">
+                            Şifrenizi hatırladınız mı? 
+                            <button class="text-primary hover:underline font-bold" onclick="switchTab('login')">
+                                Giriş yapın
+                            </button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Link -->
+        <p class="text-center text-text-muted text-sm mt-6">
+            <a href="/" class="hover:text-primary transition-colors">← Ana Sayfaya Dön</a>
+        </p>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        
+        // Tab switching
+        function switchTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.dataset.tab === tabName) {
+                    btn.classList.add('text-primary', 'border-b-primary');
+                    btn.classList.remove('text-text-muted');
+                } else {
+                    btn.classList.remove('text-primary', 'border-b-primary');
+                    btn.classList.add('text-text-muted');
+                }
+            });
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
+        // Tab button clicks
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+            });
+        });
+        
+        // Check URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab) {
+            switchTab(tab);
+        }
+        
+        // Login form
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const email = form.email.value;
+            const password = form.password.value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    
+                    const redirect = urlParams.get('redirect');
+                    if (redirect) {
+                        window.location.href = `/${redirect}`;
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
+                } else {
+                    alert(data.detail || 'Giriş başarısız');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Bağlantı hatası');
+            }
+        });
+        
+        // Register form
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const username = form.username.value;
+            const email = form.email.value;
+            const password = form.password.value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('Kayıt başarılı! Giriş yapabilirsiniz.');
+                    switchTab('login');
+                } else {
+                    alert(data.detail || 'Kayıt başarısız');
+                }
+            } catch (error) {
+                console.error('Register error:', error);
+                alert('Bağlantı hatası');
+            }
+        });
+        
+        // Forgot form
+        document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const email = form.email.value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                if (response.ok) {
+                    alert('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+                } else {
+                    const data = await response.json();
+                    alert(data.detail || 'Bir hata oluştu');
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                alert('Bağlantı hatası');
+            }
+        });
+        
+        // Check if already logged in
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch(`${API_BASE}/auth/check`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/dashboard.html';
+                }
+            }).catch(() => {});
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+---
+description: SQLite veritabanı kuralları
+globs: "src/database.py, src/*_manager.py, src/source_scanner.py"
+alwaysApply: false
+---
+
+# Database Kuralları
+
+## Bağlantı Pattern
+```python
+# Her zaman context manager kullan
+with self.get_connection() as conn:
+    cursor = conn.execute(query, params)
+    conn.commit()  # Yazma işlemlerinde
+    return cursor.fetchall()
+```
+
+## Tablo İsimlendirme
+- snake_case, çoğul: `users`, `catalog_parts`
+- Foreign key: `{tablo}_id` → `user_id`, `catalog_id`
+- Timestamp: `created_at`, `updated_at`
+- Soft delete: `is_active BOOLEAN`
+- JSON: `*_json` suffix → `rules_json`, `paytr_response`
+
+## Parameterized Query (SQL Injection önleme)
+```python
+# DOĞRU
+cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+
+# YANLIŞ - SQL Injection riski!
+cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+```
+
+## Transaction
+```python
+conn = self.get_connection()
+try:
+    conn.execute("INSERT INTO ...", ...)
+    conn.execute("UPDATE ...", ...)
+    conn.commit()
+except Exception as e:
+    conn.rollback()
+    raise
+finally:
+    conn.close()
+```
+
+## Mevcut Tablolar
+
+### Core
+| Tablo | Açıklama |
+|-------|----------|
+| users | Kullanıcı, kredi, tier |
+| settings | Şifreli API key'ler |
+| search_cache | Arama önbelleği |
+| search_logs | Arama logları |
+| payments | PayTR ödemeleri |
+| credit_requests | Kredi talepleri |
+
+### Katalog
+| Tablo | Açıklama |
+|-------|----------|
+| user_catalogs | Yüklenen PDF'ler |
+| catalog_parts | Çıkarılan parçalar |
+| catalog_rules | Sayfa kuralları |
+| pdf_sources | PDF kaynakları |
+| pdf_catalog | PDF index |
+
+### Kaynak Tarama (YENİ)
+| Tablo | Açıklama |
+|-------|----------|
+| discovered_sources | Keşfedilen path'ler |
+| scanned_pdfs | Tarama ile bulunan PDF'ler |
+| scan_history | Tarama geçmişi |
+| premium_results | Premium site cache |
+
+## Kaynak Tarama Tabloları
+
+```sql
+-- Keşfedilen Kaynaklar
+discovered_sources (
+    id, base_domain, discovered_path, full_url,
+    origin_url, origin_query, pdf_count,
+    status: pending|scanning|completed|failed,
+    last_scanned, created_at
+)
+
+-- Tarama Sonuçları
+scanned_pdfs (
+    id, source_id, url, title, snippet,
+    detected_brand, detected_model,
+    is_verified, discovered_at
+)
+
+-- Geçmiş
+scan_history (
+    id, source_id, scan_type, pdfs_found,
+    new_pdfs, duration_seconds, completed_at
+)
+```
+
+## Migration
+```bash
+# Yeni tablo eklerken
+sqlite3 data/pepc.db < migrations/001_source_scanner.sql
+```

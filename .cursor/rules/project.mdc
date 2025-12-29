@@ -1,0 +1,122 @@
+---
+description: KatalogBul proje kuralları - tüm sohbetlerde aktif
+globs: 
+alwaysApply: true
+---
+
+# KatalogBul / MakineParça
+
+## Proje Özeti
+İş makineleri (Komatsu, CAT, Volvo, Hitachi, JCB, Hyundai, Doosan) için PDF parça kataloğu arama ve analiz platformu. Türkçe B2B SaaS.
+
+## Tech Stack
+- **Backend**: FastAPI + Python 3.11
+- **Database**: SQLite (data/pepc.db)
+- **AI**: Claude Vision API (claude-sonnet-4)
+- **Auth**: JWT + bcrypt + Fernet şifreleme
+- **PDF**: PyMuPDF (fitz)
+- **Payment**: PayTR iFrame
+- **Frontend**: HTML5 + Tailwind CSS + Vanilla JS
+- **Search APIs**: Serper (Google), Brave, Yandex, Firecrawl
+
+## Kritik Dosyalar
+| Dosya | Açıklama |
+|-------|----------|
+| api/main.py | Tüm FastAPI endpoint'leri (~2700 satır) |
+| src/database.py | SQLite şema, 25+ tablo |
+| src/multi_search.py | 6 motor koordinasyonu |
+| src/source_discovery.py | 🆕 Firecrawl /map + HTTP HEAD kaynak keşfi |
+| src/search/query_builder.py | OR operatörlü sorgu oluşturucu |
+| src/search/aggregator.py | Çoklu motor birleştirici |
+| src/catalog_service.py | Claude Vision entegrasyonu |
+| src/auth.py | JWT authentication |
+| src/credit_manager.py | Kredi sistemi |
+| src/payment.py | PayTR entegrasyonu |
+| src/source_scanner.py | Kaynak tarama sistemi (Admin) |
+| src/firecrawl_google_scraper.py | Premium site araması |
+
+## Arama Modül Yapısı
+```
+src/
+├── search/
+│   ├── query_builder.py    # OR operatörlü sorgu oluşturma
+│   ├── aggregator.py       # Multi-engine birleştirici
+│   ├── google.py           # Serper client (yeni)
+│   ├── brave.py            # Brave client (yeni)
+│   └── yandex.py           # Yandex client (yeni)
+├── data/
+│   ├── brands.py           # Marka listesi ve alias'lar
+│   ├── categories.py       # Kategori terimleri
+│   └── domains.py          # Premium/excluded domain'ler
+├── pdf/
+│   └── head_checker.py     # Paralel HTTP HEAD (50 concurrent)
+├── source_discovery.py     # 🆕 Firecrawl /map entegrasyonu
+├── brave_client.py         # Eski brave client (kullanımda)
+├── serper_client.py        # Eski serper client (kullanımda)
+├── yandex_client.py        # Yandex client
+└── multi_search.py         # Ana koordinatör
+```
+
+## Arama Motorları
+| Motor | API | Dosya |
+|-------|-----|-------|
+| Google | Serper.dev | serper_client.py |
+| Brave | api.search.brave.com | brave_client.py |
+| Yandex | searchapi.api.cloud.yandex.net | yandex_client.py |
+| SearchApi (Bing) | searchapi.io | searchapi_client.py |
+| Firecrawl | api.firecrawl.dev | firecrawl_google_scraper.py, source_discovery.py |
+
+## 🆕 Kaynak Keşif Sistemi
+```
+Arama → Sonuçlar → Benzersiz Domain Çıkar → Kaynaklar Tab
+                                              ↓
+                                    [Tara] butonu tıklanır
+                                              ↓
+                                    Firecrawl /map (1 kredi)
+                                              ↓
+                                    HTTP HEAD paralel (ücretsiz)
+                                              ↓
+                                    Kaynak Sonuçları Tab
+```
+
+### Endpoint'ler
+- `POST /api/sources/extract` - Sonuçlardan domain çıkar
+- `GET /api/sources/{domain}/scan` - SSE ile kaynak tara
+- `POST /api/sources/scan` - Senkron tarama
+- `POST /api/sources/filter-by-size` - Boyut filtresi
+
+## ⚠️ ÖNEMLİ - Arama Hatalarından Kaçın
+1. **Çift filetype ekleme**: Query builder zaten `filetype:pdf` ekliyor
+2. **Yandex için**: `filetype:pdf` → `mime:pdf` dönüşümü gerekli
+3. **PDF kontrolü**: URL, title ve description'da `pdf` ara (çok kısıtlı olma)
+4. **Pagination**: Brave 200, diğerleri 100 sonuç limiti
+
+## Kod Kuralları
+- Type hints ZORUNLU
+- Async/await I/O işlemlerinde
+- Türkçe yorumlar, İngilizce kod
+- Pydantic model validasyonu
+- HTTPException ile hata yönetimi
+
+## Güvenlik
+- API key'ler Fernet ile şifreli (settings tablosu)
+- Şifreler bcrypt hash
+- JWT 24 saat geçerli
+- .env ve authorized_key.json ASLA commit edilmez
+
+## Environment Variables
+```
+DATABASE_PATH=data/pepc.db
+JWT_SECRET=xxx
+SERPER_API_KEY=xxx
+BRAVE_API_KEY=xxx
+FIRECRAWL_API_KEY=xxx
+ANTHROPIC_API_KEY=xxx
+PAYTR_MERCHANT_ID=xxx
+```
+
+## .cursorignore ile Korunan Dosyalar
+- .env, authorized_key.json (güvenlik)
+- *.db (veritabanları)
+- *.log (loglar)
+- uploads/, thumbnails/ (kullanıcı dosyaları)

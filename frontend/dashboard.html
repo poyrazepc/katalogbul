@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html class="dark" lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Kullanıcı Paneli - MakineParça</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFC500",
+                        "primary-hover": "#e6b200",
+                        "background-dark": "#0f0f10",
+                        "surface-dark": "#18181b",
+                        "surface-light": "#27272a",
+                        "border-dark": "#3f3f46",
+                        "text-main": "#f4f4f5",
+                        "text-muted": "#a1a1aa",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    backgroundImage: {
+                        'hazard-stripe': "repeating-linear-gradient(45deg, #FFC500, #FFC500 10px, #000000 10px, #000000 20px)",
+                    }
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #18181b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        
+        .industrial-corner { position: relative; }
+        .industrial-corner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            border-top: 2px solid #FFC500;
+            border-left: 2px solid #FFC500;
+            border-top-left-radius: 4px;
+        }
+        .industrial-corner::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            border-bottom: 2px solid #FFC500;
+            border-right: 2px solid #FFC500;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-background-dark text-text-main font-sans antialiased selection:bg-primary selection:text-black">
+    <div class="flex h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="hidden md:flex w-72 flex-col border-r border-border-dark bg-surface-dark shrink-0 z-20">
+            <div class="h-16 flex items-center gap-3 px-6 border-b border-border-dark bg-[#111] relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-[repeating-linear-gradient(45deg,#FFC500,#FFC500_10px,#333_10px,#333_20px)] opacity-80"></div>
+                <div class="size-8 bg-primary rounded flex items-center justify-center text-black shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-2xl font-bold">construction</span>
+                </div>
+                <div class="flex flex-col">
+                    <a href="/" class="text-white text-base font-bold uppercase tracking-wider leading-none">Makine<span class="text-primary">Parça</span></a>
+                    <span class="text-[10px] text-gray-400 font-mono mt-1">SİSTEM v2.4.0</span>
+                </div>
+            </div>
+            
+            <!-- User Card -->
+            <div class="px-4 py-6">
+                <div class="flex items-center gap-3 p-3 rounded-md bg-surface-light/30 border border-border-dark/50">
+                    <div class="size-10 rounded bg-primary flex items-center justify-center text-black font-bold">
+                        <span id="avatar-initial">?</span>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p id="sidebar-username" class="text-sm font-semibold truncate text-white">Yükleniyor...</p>
+                        <p id="sidebar-tier" class="text-xs text-text-muted truncate">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+                <div class="px-2 mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">Hesap</div>
+                
+                <button onclick="switchTab('account')" data-tab="account" class="tab-btn flex items-center gap-3 px-3 py-2.5 rounded-md bg-primary text-black font-bold shadow-md shadow-primary/10 relative overflow-hidden group w-full">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-black/20"></div>
+                    <span class="material-symbols-outlined text-xl">dashboard</span>
+                    <span class="text-sm">Hesabım</span>
+                    <span class="ml-auto material-symbols-outlined text-lg opacity-60">chevron_right</span>
+                </button>
+                
+                <button onclick="switchTab('history')" data-tab="history" class="tab-btn flex items-center gap-3 px-3 py-2.5 rounded-md text-text-muted hover:text-white hover:bg-surface-light transition-colors group w-full">
+                    <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">history</span>
+                    <span class="text-sm font-medium">Arama Geçmişi</span>
+                </button>
+                
+                <button onclick="switchTab('favorites')" data-tab="favorites" class="tab-btn flex items-center gap-3 px-3 py-2.5 rounded-md text-text-muted hover:text-white hover:bg-surface-light transition-colors group w-full">
+                    <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">star</span>
+                    <span class="text-sm font-medium">Favorilerim</span>
+                </button>
+                
+                <button onclick="switchTab('credits')" data-tab="credits" class="tab-btn flex items-center gap-3 px-3 py-2.5 rounded-md text-text-muted hover:text-white hover:bg-surface-light transition-colors group w-full">
+                    <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">credit_card</span>
+                    <span class="text-sm font-medium">Kredi Satın Al</span>
+                </button>
+                
+                <div class="my-4 border-t border-border-dark/50"></div>
+                <div class="px-2 mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">Ayarlar</div>
+                
+                <button onclick="switchTab('settings')" data-tab="settings" class="tab-btn flex items-center gap-3 px-3 py-2.5 rounded-md text-text-muted hover:text-white hover:bg-surface-light transition-colors group w-full">
+                    <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">settings</span>
+                    <span class="text-sm font-medium">Hesap Ayarları</span>
+                </button>
+                
+                <a href="/search.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-text-muted hover:text-white hover:bg-surface-light transition-colors group">
+                    <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">search</span>
+                    <span class="text-sm font-medium">Aramaya Git</span>
+                </a>
+                
+                <a href="/catalogs" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-text-muted hover:text-white hover:bg-surface-light transition-colors group">
+                    <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">auto_stories</span>
+                    <span class="text-sm font-medium">Kataloglarım</span>
+                </a>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-4 border-t border-border-dark bg-[#111]">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2 rounded text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                    <span class="material-symbols-outlined text-xl">logout</span>
+                    <span class="text-sm font-medium">Çıkış Yap</span>
+                </button>
+                <div class="flex items-center justify-between text-xs text-gray-500 font-mono mt-3">
+                    <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-green-500 animate-pulse"></span> Çevrimiçi</span>
+                    <span>v2.4.0</span>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col min-w-0 bg-background-dark relative">
+            <!-- Header -->
+            <header class="flex items-center justify-between px-6 py-4 border-b border-border-dark bg-surface-dark/50 backdrop-blur-sm sticky top-0 z-10">
+                <div class="flex items-center gap-4 md:hidden">
+                    <button class="text-gray-400 hover:text-white">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <h1 class="text-lg font-bold">Panel</h1>
+                </div>
+                <div class="hidden md:flex items-center gap-2 text-sm text-gray-400 font-mono">
+                    <span class="hover:text-primary cursor-pointer transition-colors">Panel</span>
+                    <span class="material-symbols-outlined text-base">chevron_right</span>
+                    <span id="breadcrumb-current" class="text-primary font-semibold">Hesabım</span>
+                </div>
+                <div class="flex items-center gap-4 ml-auto">
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-surface-light border border-border-dark rounded-md">
+                        <span class="material-symbols-outlined text-primary text-lg">toll</span>
+                        <span class="text-sm font-mono"><span id="header-credits" class="text-primary font-bold">0</span> Kredi</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 md:p-10">
+                <div class="max-w-5xl mx-auto space-y-8 pb-24">
+                    
+                    <!-- Account Tab -->
+                    <div id="tab-account" class="tab-content active">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                                <span class="w-1.5 h-8 bg-primary rounded-sm inline-block"></span>
+                                Hesabım
+                            </h1>
+                            <p class="mt-2 text-text-muted text-lg border-l border-border-dark pl-4 ml-1">
+                                Hesap bilgilerinizi ve kredi durumunuzu görüntüleyin.
+                            </p>
+                        </div>
+                        
+                        <!-- Stats Grid -->
+                        <div class="grid md:grid-cols-3 gap-4 mb-8">
+                            <div class="bg-surface-dark border border-border-dark rounded-md p-5 industrial-corner">
+                                <div class="flex items-center gap-4">
+                                    <div class="size-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-2xl text-primary">toll</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Kredi Bakiyesi</p>
+                                        <h2 id="account-credits" class="text-3xl font-black text-primary">0</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-surface-dark border border-border-dark rounded-md p-5">
+                                <div class="flex items-center gap-4">
+                                    <div class="size-12 bg-white/5 rounded-lg flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-2xl text-white">workspace_premium</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Paket</p>
+                                        <h2 id="account-tier" class="text-xl font-bold text-white">FREE</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-surface-dark border border-border-dark rounded-md p-5">
+                                <div class="flex items-center gap-4">
+                                    <div class="size-12 bg-white/5 rounded-lg flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-2xl text-white">search</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Toplam Arama</p>
+                                        <h2 id="account-searches" class="text-3xl font-black text-white">0</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- User Info Card -->
+                        <div class="bg-surface-dark border border-border-dark rounded-md p-6">
+                            <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">person</span>
+                                Kullanıcı Bilgileri
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between py-3 border-b border-border-dark">
+                                    <span class="text-text-muted">Kullanıcı Adı</span>
+                                    <span id="account-username" class="font-medium font-mono">-</span>
+                                </div>
+                                <div class="flex justify-between py-3 border-b border-border-dark">
+                                    <span class="text-text-muted">E-posta</span>
+                                    <span id="account-email" class="font-medium font-mono">-</span>
+                                </div>
+                                <div class="flex justify-between py-3">
+                                    <span class="text-text-muted">Kayıt Tarihi</span>
+                                    <span id="account-created" class="font-medium font-mono">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- History Tab -->
+                    <div id="tab-history" class="tab-content">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                                <span class="w-1.5 h-8 bg-primary rounded-sm inline-block"></span>
+                                Arama Geçmişi
+                            </h1>
+                        </div>
+                        
+                        <div class="bg-surface-dark border border-border-dark rounded-md overflow-hidden">
+                            <div id="history-list" class="divide-y divide-border-dark"></div>
+                            <div id="history-empty" class="p-12 text-center text-text-muted hidden">
+                                <span class="material-symbols-outlined text-5xl mb-4 opacity-50">history</span>
+                                <p>Henüz arama yapmadınız</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Favorites Tab -->
+                    <div id="tab-favorites" class="tab-content">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                                <span class="w-1.5 h-8 bg-primary rounded-sm inline-block"></span>
+                                Favorilerim
+                            </h1>
+                        </div>
+                        
+                        <div id="favorites-list" class="grid md:grid-cols-2 gap-4"></div>
+                        <div id="favorites-empty" class="bg-surface-dark border border-border-dark rounded-md p-12 text-center text-text-muted hidden">
+                            <span class="material-symbols-outlined text-5xl mb-4 opacity-50">star</span>
+                            <p>Favori PDF'iniz bulunmuyor</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Credits Tab -->
+                    <div id="tab-credits" class="tab-content">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                                <span class="w-1.5 h-8 bg-primary rounded-sm inline-block"></span>
+                                Kredi Satın Al
+                            </h1>
+                            <p class="mt-2 text-text-muted text-lg border-l border-border-dark pl-4 ml-1">
+                                İhtiyacınıza göre kredi paketi seçin.
+                            </p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="bg-surface-dark border border-border-dark rounded-md p-6 hover:border-primary/50 transition-all">
+                                <h3 class="text-xl font-bold text-white mb-2">100 Kredi</h3>
+                                <p class="text-3xl font-black text-primary mb-4">49₺</p>
+                                <button onclick="buyCredits('credits_100', 4900)" class="w-full bg-primary text-black py-3 rounded font-bold hover:bg-primary-hover transition shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px]">
+                                    Satın Al
+                                </button>
+                            </div>
+                            
+                            <div class="bg-surface-dark border-2 border-primary rounded-md p-6 relative industrial-corner">
+                                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                                    <span class="bg-primary text-black px-4 py-1 rounded-sm text-xs font-bold uppercase">Popüler</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-2">500 Kredi</h3>
+                                <p class="text-3xl font-black text-primary mb-2">199₺</p>
+                                <p class="text-sm text-green-400 mb-4 font-mono">%20 tasarruf</p>
+                                <button onclick="buyCredits('credits_500', 19900)" class="w-full bg-primary text-black py-3 rounded font-bold hover:bg-primary-hover transition shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px]">
+                                    Satın Al
+                                </button>
+                            </div>
+                            
+                            <div class="bg-surface-dark border border-border-dark rounded-md p-6 hover:border-primary/50 transition-all">
+                                <h3 class="text-xl font-bold text-white mb-2">1000 Kredi</h3>
+                                <p class="text-3xl font-black text-primary mb-2">349₺</p>
+                                <p class="text-sm text-green-400 mb-4 font-mono">%30 tasarruf</p>
+                                <button onclick="buyCredits('credits_1000', 34900)" class="w-full bg-primary text-black py-3 rounded font-bold hover:bg-primary-hover transition shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px]">
+                                    Satın Al
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Tab -->
+                    <div id="tab-settings" class="tab-content">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                                <span class="w-1.5 h-8 bg-primary rounded-sm inline-block"></span>
+                                Hesap Ayarları
+                            </h1>
+                        </div>
+                        
+                        <div class="bg-surface-dark border border-border-dark rounded-md p-6 mb-6">
+                            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">mail</span>
+                                E-posta Değiştir
+                            </h3>
+                            <form id="email-form" class="space-y-4">
+                                <input 
+                                    type="email" 
+                                    id="new-email" 
+                                    placeholder="Yeni e-posta"
+                                    class="w-full px-4 py-3 bg-background-dark border border-border-dark rounded text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                                />
+                                <button type="submit" class="px-6 py-2.5 bg-primary text-black rounded font-bold hover:bg-primary-hover transition">
+                                    Güncelle
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-surface-dark border border-border-dark rounded-md p-6 mb-6">
+                            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">lock</span>
+                                Şifre Değiştir
+                            </h3>
+                            <form id="password-form" class="space-y-4">
+                                <input 
+                                    type="password" 
+                                    id="current-password" 
+                                    placeholder="Mevcut şifre"
+                                    class="w-full px-4 py-3 bg-background-dark border border-border-dark rounded text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                                />
+                                <input 
+                                    type="password" 
+                                    id="new-password" 
+                                    placeholder="Yeni şifre"
+                                    class="w-full px-4 py-3 bg-background-dark border border-border-dark rounded text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                                />
+                                <button type="submit" class="px-6 py-2.5 bg-primary text-black rounded font-bold hover:bg-primary-hover transition">
+                                    Şifreyi Güncelle
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-red-900/10 border border-red-800/50 rounded-md p-6">
+                            <h3 class="text-lg font-bold text-red-400 mb-2 flex items-center gap-2">
+                                <span class="material-symbols-outlined">warning</span>
+                                Hesabı Sil
+                            </h3>
+                            <p class="text-text-muted mb-4">Bu işlem geri alınamaz. Tüm verileriniz silinecektir.</p>
+                            <button onclick="deleteAccount()" class="px-6 py-2.5 bg-red-600 text-white rounded font-bold hover:bg-red-700 transition">
+                                Hesabı Kalıcı Olarak Sil
+                            </button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentUser = null;
+        
+        const TAB_NAMES = {
+            'account': 'Hesabım',
+            'history': 'Arama Geçmişi',
+            'favorites': 'Favorilerim',
+            'credits': 'Kredi Satın Al',
+            'settings': 'Hesap Ayarları'
+        };
+        
+        // Switch tab
+        function switchTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.dataset.tab === tabName) {
+                    btn.className = 'tab-btn flex items-center gap-3 px-3 py-2.5 rounded-md bg-primary text-black font-bold shadow-md shadow-primary/10 relative overflow-hidden group w-full';
+                    btn.innerHTML = `
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-black/20"></div>
+                        <span class="material-symbols-outlined text-xl">${getTabIcon(tabName)}</span>
+                        <span class="text-sm">${TAB_NAMES[tabName]}</span>
+                        <span class="ml-auto material-symbols-outlined text-lg opacity-60">chevron_right</span>
+                    `;
+                } else {
+                    btn.className = 'tab-btn flex items-center gap-3 px-3 py-2.5 rounded-md text-text-muted hover:text-white hover:bg-surface-light transition-colors group w-full';
+                    btn.innerHTML = `
+                        <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">${getTabIcon(btn.dataset.tab)}</span>
+                        <span class="text-sm font-medium">${TAB_NAMES[btn.dataset.tab]}</span>
+                    `;
+                }
+            });
+            
+            // Update breadcrumb
+            document.getElementById('breadcrumb-current').textContent = TAB_NAMES[tabName];
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            
+            // Load data
+            if (tabName === 'history') loadHistory();
+            if (tabName === 'favorites') loadFavorites();
+        }
+        
+        function getTabIcon(tabName) {
+            const icons = {
+                'account': 'dashboard',
+                'history': 'history',
+                'favorites': 'star',
+                'credits': 'credit_card',
+                'settings': 'settings'
+            };
+            return icons[tabName] || 'folder';
+        }
+        
+        // Load user data
+        async function loadUserData() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    
+                    // Admin için özel tier gösterimi
+                    const displayTier = currentUser.role === 'admin' ? 'ADMIN' : currentUser.subscription_tier.toUpperCase();
+                    
+                    // Update UI
+                    document.getElementById('account-credits').textContent = currentUser.credit_balance;
+                    document.getElementById('header-credits').textContent = currentUser.credit_balance;
+                    document.getElementById('account-tier').textContent = displayTier;
+                    document.getElementById('account-username').textContent = currentUser.username;
+                    document.getElementById('account-email').textContent = currentUser.email;
+                    document.getElementById('account-created').textContent = new Date(currentUser.created_at).toLocaleDateString('tr-TR');
+                    
+                    document.getElementById('sidebar-username').textContent = currentUser.username;
+                    document.getElementById('sidebar-tier').textContent = displayTier;
+                    document.getElementById('avatar-initial').textContent = currentUser.username.charAt(0).toUpperCase();
+                    
+                    loadSearchCount();
+                } else {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('Error loading user:', error);
+            }
+        }
+        
+        // Load search count
+        async function loadSearchCount() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE}/search-logs?per_page=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('account-searches').textContent = data.total || 0;
+                }
+            } catch (error) {
+                console.error('Error loading search count:', error);
+            }
+        }
+        
+        // Load history
+        async function loadHistory() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE}/search-logs?per_page=20`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const list = document.getElementById('history-list');
+                    const empty = document.getElementById('history-empty');
+                    
+                    if (data.logs && data.logs.length > 0) {
+                        list.innerHTML = data.logs.map(log => `
+                            <div class="p-4 hover:bg-surface-light transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium">${log.query}</p>
+                                        <p class="text-sm text-text-muted">${log.doc_type} - ${new Date(log.created_at).toLocaleString('tr-TR')}</p>
+                                    </div>
+                                    <span class="text-xs font-mono bg-surface-light px-2 py-1 rounded border border-border-dark">${log.result_count} sonuç</span>
+                                </div>
+                            </div>
+                        `).join('');
+                        empty.classList.add('hidden');
+                    } else {
+                        list.innerHTML = '';
+                        empty.classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+        
+        // Load favorites
+        async function loadFavorites() {
+            const list = document.getElementById('favorites-list');
+            const empty = document.getElementById('favorites-empty');
+            list.innerHTML = '';
+            empty.classList.remove('hidden');
+        }
+        
+        // Buy credits - create credit request
+        async function buyCredits(packageId, priceAmount) {
+            const packages = {
+                'credits_100': { credit: 100, price: 4900, name: '100 Kredi' },
+                'credits_500': { credit: 500, price: 19900, name: '500 Kredi' },
+                'credits_1000': { credit: 1000, price: 34900, name: '1000 Kredi' }
+            };
+            
+            const pkg = packages[packageId];
+            if (!pkg) {
+                alert('Geçersiz paket');
+                return;
+            }
+            
+            if (!confirm(`${pkg.name} (${(pkg.price/100).toFixed(0)}₺) satın almak istediğinize emin misiniz?\n\nTalebiniz admin onayına gönderilecektir.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/credit-requests', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        package_type: packageId,
+                        credit_amount: pkg.credit,
+                        price_amount: pkg.price
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ ' + data.message);
+                } else {
+                    alert('❌ ' + (data.detail || 'Talep oluşturulamadı'));
+                }
+            } catch (error) {
+                console.error('Credit request error:', error);
+                alert('Bağlantı hatası');
+            }
+        }
+        
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+        
+        // Delete account
+        function deleteAccount() {
+            if (!confirm('Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) {
+                return;
+            }
+            alert('Hesap silme işlemi için destek ile iletişime geçin.');
+        }
+        
+        // Forms
+        document.getElementById('email-form')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('E-posta güncelleme özelliği yakında eklenecek.');
+        });
+        
+        document.getElementById('password-form')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Şifre güncelleme özelliği yakında eklenecek.');
+        });
+        
+        // Initialize
+        loadUserData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+---
+description: Python kod standartları
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Python Kuralları
+
+## Import Sırası
+```python
+# 1. stdlib
+import os
+import json
+from datetime import datetime
+from typing import Optional, List, Dict, Any
+from dataclasses import dataclass
+
+# 2. third-party
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel
+import aiohttp
+import anthropic
+
+# 3. local
+from src.database import PEPCDatabase
+from src.auth import get_current_user
+from src.search.query_builder import build_search_query
+from src.data.domains import is_excluded_domain, is_premium_domain
+```
+
+## Type Hints (ZORUNLU)
+```python
+async def search_pdfs(
+    query: str,
+    engines: list[str],
+    doc_type: str | None = None,
+    languages: list[str] | None = None
+) -> dict[str, Any]:
+    """PDF arama fonksiyonu."""
+    ...
+```
+
+## Search Client Kuralları (ÖNEMLİ)
+```python
+# 1. Çift filetype/mime kontrolü YAPMA
+# Query builder zaten filetype:pdf ekliyor
+if 'filetype:pdf' not in query.lower():
+    pdf_query = f"{query} filetype:pdf"
+else:
+    pdf_query = query  # Tekrar ekleme!
+
+# 2. Yandex için filetype -> mime dönüşümü
+if 'filetype:pdf' in query.lower():
+    pdf_query = query.replace('filetype:pdf', 'mime:pdf')
+
+# 3. PDF kontrolü - ESNEK ol
+# Sadece URL değil, title ve description'da da ara
+is_pdf = (
+    '.pdf' in url.lower() or
+    'pdf' in title.lower() or
+    'pdf' in snippet.lower()
+)
+```
+
+## Docstring (Türkçe, Google Style)
+```python
+def calculate_credits(operation: str, count: int) -> int:
+    """Operasyon için gerekli kredi miktarını hesaplar.
+    
+    Args:
+        operation: İşlem tipi (search, analyze, download)
+        count: İşlem sayısı
+        
+    Returns:
+        Toplam kredi maliyeti
+        
+    Raises:
+        ValueError: Geçersiz operasyon tipi
+    """
+```
+
+## Database Pattern
+```python
+# Context manager kullan
+conn = self.db.get_connection()
+try:
+    cursor = conn.execute(
+        "SELECT * FROM users WHERE id = ?",
+        (user_id,)
+    )
+    result = cursor.fetchone()
+    return dict(result) if result else None
+finally:
+    conn.close()
+```
+
+## Async I/O
+```python
+# aiohttp kullan (requests değil)
+async def _ensure_session(self):
+    if not self.session or self.session.closed:
+        timeout = aiohttp.ClientTimeout(total=30)
+        connector = aiohttp.TCPConnector(limit=100, limit_per_host=10)
+        self.session = aiohttp.ClientSession(timeout=timeout, connector=connector)
+
+async with self.session.post(url, headers=headers, json=payload) as response:
+    return await response.json()
+```
+
+## 🆕 Paralel HTTP HEAD (Boyut Kontrolü)
+```python
+# 50 concurrent request ile hızlı boyut kontrolü
+async def get_bulk_pdf_info(urls: list[str], max_concurrent: int = 50):
+    semaphore = asyncio.Semaphore(max_concurrent)
+    
+    async def fetch_with_semaphore(url: str, session):
+        async with semaphore:
+            async with session.head(url, allow_redirects=True) as response:
+                content_length = response.headers.get("Content-Length")
+                return url, int(content_length) if content_length else None
+    
+    connector = aiohttp.TCPConnector(limit=max_concurrent, limit_per_host=5)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        tasks = [fetch_with_semaphore(url, session) for url in urls]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+    return results
+```
+
+## 🆕 SSE Stream Pattern
+```python
+# AsyncGenerator ile SSE stream
+async def scan_domain_stream(self, domain: SourceDomain) -> AsyncGenerator[Dict, None]:
+    yield {"type": "progress", "data": {"status": "scanning", "progress": 0}}
+    
+    for i, url in enumerate(scan_urls):
+        # İşlem...
+        yield {"type": "pdfs", "data": {"count": len(new_pdfs), "pdfs": [...]}}
+    
+    yield {"type": "complete", "data": {"total": len(all_pdfs)}}
+```
+
+## Error Handling
+```python
+try:
+    result = await external_api_call()
+except aiohttp.ClientError as e:
+    logger.error(f"API hatası: {e}")
+    raise HTTPException(status_code=502, detail="Dış servis hatası")
+except Exception as e:
+    logger.exception("Beklenmeyen hata")
+    raise HTTPException(status_code=500, detail="Sunucu hatası")
+```
+
+## Dataclass Kullanımı
+```python
+@dataclass
+class DiscoveredSource:
+    base_domain: str
+    discovered_path: str
+    full_url: str
+    origin_url: str
+    origin_query: str
+```
+
+## Logger
+```python
+import logging
+logger = logging.getLogger(__name__)
+
+logger.info(f"Kaynak tarandı: {source_id}")
+logger.error(f"Tarama hatası: {e}")
+logger.warning(f"API key bulunamadı")
+```

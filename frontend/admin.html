@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - KatalogBul</title>
+    
+    <!-- Google Fonts - Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #242424;
+            --accent: #f5a425;
+            --accent-hover: #e09620;
+            --text-primary: #ffffff;
+            --text-secondary: #a7a7a7;
+            --text-muted: #6c6c6c;
+            --border-color: #333333;
+        }
+        
+        * { font-family: 'Poppins', sans-serif; }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            width: 260px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+        }
+        
+        .sidebar-brand {
+            padding: 25px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-brand h4 {
+            margin: 0;
+            font-weight: 700;
+        }
+        
+        .sidebar-brand span { color: var(--accent); }
+        
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+        
+        .nav-section {
+            padding: 0 20px;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 25px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-link:hover {
+            color: var(--text-primary);
+            background-color: rgba(245, 164, 37, 0.05);
+        }
+        
+        .sidebar-link.active {
+            color: var(--accent);
+            background-color: rgba(245, 164, 37, 0.1);
+            border-left-color: var(--accent);
+        }
+        
+        .sidebar-link i { font-size: 18px; }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+        
+        /* Top Bar */
+        .topbar {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .topbar h5 { margin: 0; font-weight: 600; }
+        
+        /* Content */
+        .content-area {
+            padding: 30px;
+        }
+        
+        /* Cards */
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+        
+        .stat-card .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 15px 0 5px;
+        }
+        
+        .stat-card p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Table */
+        .data-table {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .data-table .table {
+            margin: 0;
+            color: var(--text-primary);
+        }
+        
+        .data-table .table thead {
+            background-color: var(--bg-secondary);
+        }
+        
+        .data-table .table thead th {
+            border: none;
+            padding: 15px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+        
+        .data-table .table tbody td {
+            border-color: var(--border-color);
+            padding: 15px 20px;
+            vertical-align: middle;
+        }
+        
+        .data-table .table tbody tr:hover {
+            background-color: rgba(245, 164, 37, 0.05);
+        }
+        
+        /* Form */
+        .form-control, .form-select {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px 18px;
+            border-radius: 10px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: var(--bg-secondary);
+            border-color: var(--accent);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 3px rgba(245, 164, 37, 0.15);
+        }
+        
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        /* Buttons */
+        .btn-accent {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-accent:hover {
+            background-color: var(--accent-hover);
+            color: var(--bg-primary);
+        }
+        
+        /* Badge */
+        .badge-custom {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .badge-success { background-color: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .badge-warning { background-color: rgba(245, 164, 37, 0.2); color: #f5a425; }
+        .badge-danger { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-info { background-color: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .badge-purple { background-color: rgba(168, 85, 247, 0.2); color: #a855f7; }
+        
+        /* Section */
+        .section-header {
+            margin-bottom: 25px;
+        }
+        
+        .section-header h4 {
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h4>Katalog<span>Bul</span></h4>
+            <small class="text-muted">Admin Panel</small>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <p class="nav-section">Ana Menü</p>
+            <a href="#" class="sidebar-link active" data-section="dashboard">
+                <i class="bi bi-grid-1x2"></i> Dashboard
+            </a>
+            <a href="#" class="sidebar-link" data-section="users">
+                <i class="bi bi-people"></i> Kullanıcılar
+            </a>
+            
+            <p class="nav-section mt-4">Ayarlar</p>
+            <a href="#" class="sidebar-link" data-section="api-settings">
+                <i class="bi bi-key"></i> API Ayarları
+            </a>
+            <a href="#" class="sidebar-link" data-section="pricing">
+                <i class="bi bi-currency-dollar"></i> Fiyatlandırma
+            </a>
+            
+            <p class="nav-section mt-4">Raporlar</p>
+            <a href="#" class="sidebar-link" data-section="credit-requests">
+                <i class="bi bi-cart-check"></i> Kredi Talepleri
+                <span id="pending-requests-badge" class="badge bg-danger ms-2" style="display:none;">0</span>
+            </a>
+            <a href="#" class="sidebar-link" data-section="payments">
+                <i class="bi bi-credit-card"></i> Ödemeler
+            </a>
+            <a href="#" class="sidebar-link" data-section="logs">
+                <i class="bi bi-list-ul"></i> Arama Logları
+            </a>
+            <a href="#" class="sidebar-link" data-section="cache">
+                <i class="bi bi-database"></i> Cache
+            </a>
+            
+            <p class="nav-section mt-4">Kaynak Tarama</p>
+            <a href="#" class="sidebar-link" data-section="source-scan">
+                <i class="bi bi-radar"></i> Kaynakları Tara
+                <span id="pending-sources-badge" class="badge bg-warning text-dark ms-2" style="display:none;">0</span>
+            </a>
+            <a href="#" class="sidebar-link" data-section="scan-history">
+                <i class="bi bi-clock-history"></i> Yapıldı
+            </a>
+            
+            <p class="nav-section mt-4">Diğer</p>
+            <a href="/" class="sidebar-link">
+                <i class="bi bi-house"></i> Siteye Dön
+            </a>
+            <a href="#" class="sidebar-link" onclick="logout()">
+                <i class="bi bi-box-arrow-left"></i> Çıkış
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <h5 id="page-title">Dashboard</h5>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted" id="admin-name"></span>
+            </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            
+            <!-- Dashboard Section -->
+            <section id="section-dashboard" class="admin-section active">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <h3 id="stat-users">0</h3>
+                            <p>Toplam Kullanıcı</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-person-check"></i>
+                            </div>
+                            <h3 id="stat-subs">0</h3>
+                            <p>Aktif Abonelik</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon bg-info bg-opacity-10 text-info">
+                                <i class="bi bi-search"></i>
+                            </div>
+                            <h3 id="stat-searches">0</h3>
+                            <p>Bugün Arama</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                            <h3 id="stat-revenue">0 ₺</h3>
+                            <p>Bugün Gelir</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h5 class="mb-4">Tier Dağılımı</h5>
+                            <div id="tier-distribution"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h5 class="mb-4">Cache Durumu</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 id="stat-cache" class="text-warning mb-0">0</h3>
+                                    <p class="text-muted">Kayıtlı Sonuç</p>
+                                </div>
+                                <button class="btn-accent" onclick="refreshCache()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Yenile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="section-users" class="admin-section">
+                <div class="section-header d-flex justify-content-between align-items-center">
+                    <h4>Kullanıcılar</h4>
+                    <select id="users-filter" class="form-select w-auto" onchange="loadUsers()">
+                        <option value="">Tüm Tierlar</option>
+                        <option value="free">Free</option>
+                        <option value="pro">Pro</option>
+                        <option value="enterprise">Enterprise</option>
+                    </select>
+                </div>
+                
+                <div class="data-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Kullanıcı</th>
+                                <th>E-posta</th>
+                                <th>Kredi</th>
+                                <th>Tier</th>
+                                <th>Rol</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- API Settings Section -->
+            <section id="section-api-settings" class="admin-section">
+                <div class="section-header">
+                    <h4>API Ayarları</h4>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h5 class="mb-4"><i class="bi bi-credit-card-2-front text-warning me-2"></i>PayTR</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Merchant ID</label>
+                                <input type="text" id="setting-paytr_merchant_id" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Merchant Key</label>
+                                <input type="password" id="setting-paytr_merchant_key" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Merchant Salt</label>
+                                <input type="password" id="setting-paytr_merchant_salt" class="form-control">
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" id="setting-paytr_test_mode" class="form-check-input">
+                                <label class="form-check-label text-muted">Test Modu</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h5 class="mb-4"><i class="bi bi-search text-info me-2"></i>Arama API</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Serper.dev (Google) Key</label>
+                                <input type="password" id="setting-serper_api_key" class="form-control" placeholder="Serper.dev API Key">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">SearchApi.io Key</label>
+                                <input type="password" id="setting-searchapi_key" class="form-control" placeholder="SearchApi.io API Key">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Brave API Key</label>
+                                <input type="password" id="setting-brave_api_key" class="form-control" placeholder="Brave Search API Key">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Yandex API Key</label>
+                                <input type="password" id="setting-yandex_api_key" class="form-control" placeholder="Yandex Search API Key">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Yandex Folder ID</label>
+                                <input type="text" id="setting-yandex_folder_id" class="form-control" placeholder="Yandex Cloud Folder ID">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn-accent mt-4" onclick="saveSettings()">
+                    <i class="bi bi-check-lg me-1"></i> Kaydet
+                </button>
+            </section>
+
+            <!-- Pricing Section -->
+            <section id="section-pricing" class="admin-section">
+                <div class="section-header">
+                    <h4>Fiyatlandırma</h4>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h5 class="mb-4">Kredi Maliyetleri</h5>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label">Google (kredi)</label>
+                                    <input type="number" id="setting-api_credit_google" class="form-control">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Bing (kredi)</label>
+                                    <input type="number" id="setting-api_credit_bing" class="form-control">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Brave (kredi)</label>
+                                    <input type="number" id="setting-api_credit_brave" class="form-control">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Baidu (kredi)</label>
+                                    <input type="number" id="setting-api_credit_baidu" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h5 class="mb-4">Paket Fiyatları (kuruş)</h5>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label">100 Kredi</label>
+                                    <input type="number" id="setting-price_credits_100" class="form-control">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">500 Kredi</label>
+                                    <input type="number" id="setting-price_credits_500" class="form-control">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Başlangıç Kredisi</label>
+                                    <input type="number" id="setting-initial_credits" class="form-control">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Free Günlük Limit</label>
+                                    <input type="number" id="setting-free_daily_limit" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn-accent mt-4" onclick="saveSettings()">
+                    <i class="bi bi-check-lg me-1"></i> Kaydet
+                </button>
+            </section>
+
+            <!-- Credit Requests Section -->
+            <section id="section-credit-requests" class="admin-section">
+                <div class="section-header">
+                    <h4>Kredi Talepleri</h4>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="loadCreditRequests('all')">Tümü</button>
+                        <button class="btn btn-sm btn-warning" onclick="loadCreditRequests('pending')">Bekleyenler</button>
+                        <button class="btn btn-sm btn-success" onclick="loadCreditRequests('approved')">Onaylananlar</button>
+                        <button class="btn btn-sm btn-danger" onclick="loadCreditRequests('rejected')">Reddedilenler</button>
+                    </div>
+                </div>
+                
+                <div class="data-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Kullanıcı</th>
+                                <th>Telefon</th>
+                                <th>E-posta</th>
+                                <th>Paket</th>
+                                <th>Kredi</th>
+                                <th>Tutar</th>
+                                <th>Mevcut Bakiye</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="credit-requests-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Payments Section -->
+            <section id="section-payments" class="admin-section">
+                <div class="section-header">
+                    <h4>Ödemeler</h4>
+                </div>
+                
+                <div class="data-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Kullanıcı</th>
+                                <th>Paket</th>
+                                <th>Tutar</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payments-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Logs Section -->
+            <section id="section-logs" class="admin-section">
+                <div class="section-header">
+                    <h4>Arama Logları</h4>
+                </div>
+                
+                <div class="data-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Kullanıcı</th>
+                                <th>Sorgu</th>
+                                <th>Sonuç</th>
+                                <th>Kredi</th>
+                                <th>Cache</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Cache Section -->
+            <section id="section-cache" class="admin-section">
+                <div class="section-header">
+                    <h4>Cache Yönetimi</h4>
+                </div>
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <h3 id="cache-total" class="text-warning">0</h3>
+                            <p>Toplam Kayıt</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <h3 id="cache-active" class="text-success">0</h3>
+                            <p>Aktif</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <h3 id="cache-expired" class="text-danger">0</h3>
+                            <p>Süresi Dolmuş</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-3">
+                    <button class="btn-accent" onclick="refreshCacheData()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Süresi Dolmuşları Temizle
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="clearAllCache()">
+                        <i class="bi bi-trash me-1"></i> Tümünü Temizle
+                    </button>
+                </div>
+            </section>
+
+            <!-- Source Scan Section -->
+            <section id="section-source-scan" class="admin-section">
+                <div class="section-header d-flex justify-content-between align-items-center">
+                    <h4><i class="bi bi-radar me-2"></i>Kaynak Tarama</h4>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="loadSources()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        <button class="btn-accent btn-sm" onclick="scanAllPending()" id="scan-all-btn">
+                            <i class="bi bi-play-fill me-1"></i> Tümünü Tara
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <h3 id="sources-pending" class="text-warning">0</h3>
+                            <p>Bekleyen</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <h3 id="sources-completed" class="text-success">0</h3>
+                            <p>Tamamlanan</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <h3 id="sources-pdfs" class="text-info">0</h3>
+                            <p>Bulunan PDF</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <h3 id="sources-failed" class="text-danger">0</h3>
+                            <p>Hatalı</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scanning Progress -->
+                <div id="scan-progress" class="mb-4" style="display:none;">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-warning"><i class="bi bi-hourglass-split me-2"></i>Tarama Devam Ediyor...</span>
+                            <span id="scan-progress-text">0/0</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" id="scan-progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pending Sources Table -->
+                <div class="data-table">
+                    <div class="p-3 border-bottom border-dark d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 text-warning">Bekleyen Kaynaklar</h6>
+                        <span class="badge bg-warning text-dark" id="pending-count-label">0</span>
+                    </div>
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="select-all-sources" onchange="toggleAllSources()"></th>
+                                    <th>Domain</th>
+                                    <th>Path</th>
+                                    <th>Kaynak Sorgu</th>
+                                    <th>Tarih</th>
+                                    <th style="width: 120px;">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending-sources-table">
+                                <tr><td colspan="6" class="text-center text-muted py-5">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Scan History Section (Yapıldı) -->
+            <section id="section-scan-history" class="admin-section">
+                <div class="section-header d-flex justify-content-between align-items-center">
+                    <h4><i class="bi bi-clock-history me-2"></i>Tamamlanan Taramalar</h4>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadScanHistory()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                
+                <!-- Completed Sources Table -->
+                <div class="data-table">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Domain</th>
+                                    <th>Path</th>
+                                    <th>PDF Sayısı</th>
+                                    <th>Tarama Tarihi</th>
+                                    <th style="width: 150px;">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completed-sources-table">
+                                <tr><td colspan="5" class="text-center text-muted py-5">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PDF Detail Modal -->
+                <div class="modal fade" id="pdfDetailModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content bg-dark">
+                            <div class="modal-header border-secondary">
+                                <h5 class="modal-title" id="pdfModalTitle">Bulunan PDF'ler</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body" id="pdfModalBody">
+                                <p class="text-muted">Yükleniyor...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // API Base
+        const API_BASE = '';
+        
+        // Get Token
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+        
+        // API Call
+        async function apiCall(endpoint, options = {}) {
+            const token = getToken();
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                ...options.headers
+            };
+            
+            const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+            
+            if (response.status === 401 || response.status === 403) {
+                window.location.href = '/';
+                return null;
+            }
+            
+            return response.json();
+        }
+        
+        // Check Admin
+        async function checkAdmin() {
+            try {
+                const data = await apiCall('/api/auth/me');
+                if (!data || (data.role !== 'admin' && data.role !== 'superadmin')) {
+                    alert('Bu sayfaya erişim yetkiniz yok');
+                    window.location.href = '/';
+                    return;
+                }
+                document.getElementById('admin-name').textContent = data.username;
+            } catch (e) {
+                window.location.href = '/';
+            }
+        }
+        
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+        
+        // Navigation
+        document.querySelectorAll('.sidebar-link[data-section]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.dataset.section;
+                
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(`section-${section}`).classList.add('active');
+                
+                document.getElementById('page-title').textContent = link.textContent.trim();
+                
+                loadSectionData(section);
+            });
+        });
+        
+        // Load Section Data
+        function loadSectionData(section) {
+            if (section === 'dashboard') loadDashboard();
+            else if (section === 'users') loadUsers();
+            else if (section === 'api-settings') loadSettings();
+            else if (section === 'pricing') loadSettings();
+            else if (section === 'credit-requests') loadCreditRequests('pending');
+            else if (section === 'payments') loadPayments();
+            else if (section === 'logs') loadLogs();
+            else if (section === 'cache') loadCache();
+            else if (section === 'source-scan') loadSources();
+            else if (section === 'scan-history') loadScanHistory();
+        }
+        
+        // Load Dashboard
+        async function loadDashboard() {
+            const data = await apiCall('/api/admin/dashboard');
+            if (!data) return;
+            
+            document.getElementById('stat-users').textContent = data.total_users || 0;
+            document.getElementById('stat-subs').textContent = data.active_subscriptions || 0;
+            document.getElementById('stat-searches').textContent = data.today_searches || 0;
+            
+            // Load pending credit requests count
+            const crData = await apiCall('/api/admin/credit-requests?status=pending');
+            if (crData && crData.requests) {
+                const pendingCount = crData.requests.length;
+                const badge = document.getElementById('pending-requests-badge');
+                if (pendingCount > 0) {
+                    badge.textContent = pendingCount;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            document.getElementById('stat-revenue').textContent = ((data.today_revenue || 0) / 100).toFixed(0) + ' ₺';
+            document.getElementById('stat-cache').textContent = data.cache_entries || 0;
+            
+            const dist = data.tier_distribution || {};
+            document.getElementById('tier-distribution').innerHTML = Object.entries(dist).map(([tier, count]) => `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge-custom badge-${tier === 'pro' ? 'warning' : tier === 'enterprise' ? 'purple' : 'info'}">${tier}</span>
+                    <span class="fw-bold">${count}</span>
+                </div>
+            `).join('');
+        }
+        
+        // Load Users
+        async function loadUsers() {
+            const tier = document.getElementById('users-filter').value;
+            const data = await apiCall(`/api/admin/users?tier=${tier}`);
+            if (!data) return;
+            
+            document.getElementById('users-table').innerHTML = (data.items || []).map(u => `
+                <tr>
+                    <td>${u.id}</td>
+                    <td><strong>${u.username}</strong></td>
+                    <td>${u.email}</td>
+                    <td>${u.credit_balance}</td>
+                    <td><span class="badge-custom badge-${u.subscription_tier === 'pro' ? 'warning' : u.subscription_tier === 'enterprise' ? 'purple' : 'info'}">${u.subscription_tier}</span></td>
+                    <td>${u.role}</td>
+                    <td><button class="btn btn-sm btn-outline-warning" onclick="editUserCredits(${u.id})">Kredi</button></td>
+                </tr>
+            `).join('') || '<tr><td colspan="7" class="text-center text-muted">Kullanıcı bulunamadı</td></tr>';
+        }
+        
+        // Edit User Credits
+        async function editUserCredits(userId) {
+            const amount = prompt('Eklenecek/çıkarılacak kredi miktarı:');
+            if (amount === null) return;
+            
+            await apiCall(`/api/admin/users/${userId}/credits?amount=${parseInt(amount)}`, { method: 'POST' });
+            loadUsers();
+        }
+        
+        // Load Settings
+        async function loadSettings() {
+            const data = await apiCall('/api/admin/settings');
+            if (!data) return;
+            
+            data.forEach(setting => {
+                const el = document.getElementById(`setting-${setting.key}`);
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        el.checked = setting.value === '1';
+                    } else {
+                        el.value = setting.value || '';
+                    }
+                }
+            });
+        }
+        
+        // Save Settings
+        async function saveSettings() {
+            const inputs = document.querySelectorAll('[id^="setting-"]');
+            
+            for (const input of inputs) {
+                const key = input.id.replace('setting-', '');
+                let value = input.type === 'checkbox' ? (input.checked ? '1' : '0') : input.value;
+                
+                if (value) {
+                    await apiCall(`/api/admin/settings/${key}?value=${encodeURIComponent(value)}`, { method: 'PUT' });
+                }
+            }
+            
+            alert('Ayarlar kaydedildi');
+        }
+        
+        // Load Payments
+        async function loadPayments() {
+            const data = await apiCall('/api/admin/payments');
+            if (!data) return;
+            
+            document.getElementById('payments-table').innerHTML = (data.items || []).map(p => `
+                <tr>
+                    <td>${new Date(p.created_at).toLocaleString('tr')}</td>
+                    <td>${p.email || '-'}</td>
+                    <td>${p.package_type}</td>
+                    <td>${(p.amount / 100).toFixed(0)} ₺</td>
+                    <td><span class="badge-custom badge-${p.status === 'success' ? 'success' : p.status === 'pending' ? 'warning' : 'danger'}">${p.status}</span></td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" class="text-center text-muted">Ödeme bulunamadı</td></tr>';
+        }
+        
+        // Load Credit Requests
+        async function loadCreditRequests(status = 'all') {
+            const url = status === 'all' ? '/api/admin/credit-requests' : `/api/admin/credit-requests?status=${status}`;
+            const data = await apiCall(url);
+            if (!data) return;
+            
+            const requests = data.requests || [];
+            
+            // Update pending badge
+            const pendingCount = requests.filter(r => r.status === 'pending').length;
+            const badge = document.getElementById('pending-requests-badge');
+            if (pendingCount > 0) {
+                badge.textContent = pendingCount;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            document.getElementById('credit-requests-table').innerHTML = requests.map(r => {
+                const statusBadge = r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warning' : 'danger';
+                const statusText = r.status === 'approved' ? 'Onaylandı' : r.status === 'pending' ? 'Bekliyor' : 'Reddedildi';
+                const packageNames = {
+                    'credits_100': '100 Kredi',
+                    'credits_500': '500 Kredi',
+                    'credits_1000': '1000 Kredi'
+                };
+                
+                let actionButtons = '';
+                if (r.status === 'pending') {
+                    actionButtons = `
+                        <button class="btn btn-sm btn-success me-1" onclick="processCreditRequest(${r.id}, 'approve')">
+                            <i class="bi bi-check-lg"></i> Onayla
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="processCreditRequest(${r.id}, 'reject')">
+                            <i class="bi bi-x-lg"></i> Reddet
+                        </button>
+                    `;
+                } else {
+                    actionButtons = `<span class="text-muted small">${r.admin_note || '-'}</span>`;
+                }
+                
+                return `
+                    <tr>
+                        <td class="small">${new Date(r.created_at).toLocaleString('tr')}</td>
+                        <td><strong>${r.username}</strong></td>
+                        <td>${r.phone || '-'}</td>
+                        <td class="small">${r.email}</td>
+                        <td>${packageNames[r.package_type] || r.package_type}</td>
+                        <td><span class="badge bg-primary">${r.credit_amount}</span></td>
+                        <td>${(r.price_amount / 100).toFixed(0)} ₺</td>
+                        <td><span class="badge bg-secondary">${r.credit_balance}</span></td>
+                        <td><span class="badge-custom badge-${statusBadge}">${statusText}</span></td>
+                        <td>${actionButtons}</td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="10" class="text-center text-muted">Kredi talebi bulunamadı</td></tr>';
+        }
+        
+        // Process Credit Request
+        async function processCreditRequest(requestId, action) {
+            const actionText = action === 'approve' ? 'onaylamak' : 'reddetmek';
+            const note = prompt(`Bu talebi ${actionText} istediğinize emin misiniz?\n\nNot (opsiyonel):`);
+            
+            if (note === null) return; // Cancel pressed
+            
+            try {
+                const response = await fetch(`/api/admin/credit-requests/${requestId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ action, admin_note: note || null })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ ' + data.message);
+                    loadCreditRequests('pending'); // Refresh
+                } else {
+                    alert('❌ ' + (data.detail || 'İşlem başarısız'));
+                }
+            } catch (error) {
+                console.error('Process request error:', error);
+                alert('Bağlantı hatası');
+            }
+        }
+        
+        // Load Logs
+        async function loadLogs() {
+            const data = await apiCall('/api/admin/search-logs');
+            if (!data) return;
+            
+            document.getElementById('logs-table').innerHTML = (data.items || []).map(l => `
+                <tr>
+                    <td class="small">${new Date(l.created_at).toLocaleString('tr')}</td>
+                    <td>${l.email || l.username || 'Guest'}</td>
+                    <td class="text-truncate" style="max-width:200px;">${l.query}</td>
+                    <td>${l.result_count}</td>
+                    <td>${l.credits_used}</td>
+                    <td>${l.is_cached ? '<span class="badge-custom badge-success">✓</span>' : '-'}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" class="text-center text-muted">Log bulunamadı</td></tr>';
+        }
+        
+        // Load Cache
+        async function loadCache() {
+            const data = await apiCall('/cache/stats');
+            if (!data) return;
+            
+            document.getElementById('cache-total').textContent = data.total_cached || 0;
+            document.getElementById('cache-active').textContent = data.active || 0;
+            document.getElementById('cache-expired').textContent = data.expired || 0;
+        }
+        
+        // Refresh Cache
+        async function refreshCache() {
+            await apiCall('/cache/refresh', { method: 'POST' });
+            loadDashboard();
+        }
+        
+        async function refreshCacheData() {
+            await apiCall('/cache/refresh', { method: 'POST' });
+            loadCache();
+            alert('Süresi dolmuş cache temizlendi');
+        }
+        
+        async function clearAllCache() {
+            if (!confirm('Tüm cache silinecek. Emin misiniz?')) return;
+            await apiCall('/cache/clear', { method: 'POST' });
+            loadCache();
+            alert('Tüm cache temizlendi');
+        }
+        
+        // ================================================================
+        // KAYNAK TARAMA FONKSİYONLARI
+        // ================================================================
+        
+        let selectedSources = new Set();
+        let scanningInProgress = false;
+        
+        // Load Sources (Pending)
+        async function loadSources() {
+            const data = await apiCall('/api/admin/sources');
+            if (!data) return;
+            
+            const sources = data.sources || {};
+            const pending = sources.pending || [];
+            const completed = sources.completed || [];
+            const failed = sources.failed || [];
+            
+            // Update stats
+            document.getElementById('sources-pending').textContent = pending.length;
+            document.getElementById('sources-completed').textContent = completed.length;
+            document.getElementById('sources-failed').textContent = failed.length;
+            document.getElementById('pending-count-label').textContent = pending.length;
+            
+            // Update sidebar badge
+            const badge = document.getElementById('pending-sources-badge');
+            if (pending.length > 0) {
+                badge.textContent = pending.length;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            // Load stats
+            const stats = await apiCall('/api/admin/sources/stats');
+            if (stats) {
+                document.getElementById('sources-pdfs').textContent = stats.total_pdfs || 0;
+            }
+            
+            // Render pending table
+            renderPendingTable(pending);
+            
+            selectedSources.clear();
+            document.getElementById('select-all-sources').checked = false;
+        }
+        
+        function renderPendingTable(sources) {
+            const tbody = document.getElementById('pending-sources-table');
+            
+            if (!sources || sources.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5">Bekleyen kaynak yok</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = sources.map(s => `
+                <tr data-id="${s.id}">
+                    <td><input type="checkbox" class="source-checkbox" value="${s.id}" onchange="toggleSource(${s.id})"></td>
+                    <td><strong class="text-info">${s.base_domain}</strong></td>
+                    <td class="text-truncate" style="max-width: 200px;" title="${s.discovered_path}">
+                        <code class="small">${s.discovered_path}</code>
+                    </td>
+                    <td class="text-truncate small text-muted" style="max-width: 150px;" title="${s.origin_query || '-'}">
+                        ${s.origin_query || '-'}
+                    </td>
+                    <td class="small">${new Date(s.created_at).toLocaleDateString('tr')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="scanSource(${s.id})" title="Tara">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSource(${s.id})" title="Sil">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function toggleSource(id) {
+            if (selectedSources.has(id)) {
+                selectedSources.delete(id);
+            } else {
+                selectedSources.add(id);
+            }
+        }
+        
+        function toggleAllSources() {
+            const checked = document.getElementById('select-all-sources').checked;
+            document.querySelectorAll('.source-checkbox').forEach(cb => {
+                cb.checked = checked;
+                const id = parseInt(cb.value);
+                if (checked) {
+                    selectedSources.add(id);
+                } else {
+                    selectedSources.delete(id);
+                }
+            });
+        }
+        
+        // Scan single source
+        async function scanSource(id) {
+            const btn = event.target.closest('button');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            btn.disabled = true;
+            
+            try {
+                const result = await apiCall(`/api/admin/sources/${id}/scan`, { method: 'POST' });
+                
+                if (result && result.success) {
+                    alert(`✅ Tarama tamamlandı!\n\nBulunan PDF: ${result.pdfs_found}\nYeni PDF: ${result.new_pdfs}`);
+                    loadSources();
+                } else {
+                    alert('❌ Tarama hatası: ' + (result?.error || 'Bilinmeyen hata'));
+                }
+            } catch (e) {
+                alert('❌ Bağlantı hatası');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+        
+        // Scan all pending
+        async function scanAllPending() {
+            const pendingCount = parseInt(document.getElementById('sources-pending').textContent) || 0;
+            
+            if (pendingCount === 0) {
+                alert('Bekleyen kaynak yok');
+                return;
+            }
+            
+            if (!confirm(`${pendingCount} kaynak taranacak. Devam edilsin mi?\n\nBu işlem birkaç dakika sürebilir.`)) {
+                return;
+            }
+            
+            scanningInProgress = true;
+            document.getElementById('scan-progress').style.display = 'block';
+            document.getElementById('scan-all-btn').disabled = true;
+            
+            try {
+                const result = await apiCall('/api/admin/sources/scan-all-pending', { method: 'POST' });
+                
+                document.getElementById('scan-progress').style.display = 'none';
+                document.getElementById('scan-all-btn').disabled = false;
+                scanningInProgress = false;
+                
+                if (result) {
+                    alert(`✅ Tarama tamamlandı!\n\nToplam: ${result.total}\nBaşarılı: ${result.success}\nHatalı: ${result.failed}\nBulunan PDF: ${result.total_pdfs}\nYeni PDF: ${result.new_pdfs}`);
+                    loadSources();
+                }
+            } catch (e) {
+                document.getElementById('scan-progress').style.display = 'none';
+                document.getElementById('scan-all-btn').disabled = false;
+                scanningInProgress = false;
+                alert('❌ Bağlantı hatası');
+            }
+        }
+        
+        // Delete source
+        async function deleteSource(id) {
+            if (!confirm('Bu kaynak silinecek. Emin misiniz?')) return;
+            
+            const result = await apiCall(`/api/admin/sources/${id}`, { method: 'DELETE' });
+            if (result && result.success) {
+                loadSources();
+            }
+        }
+        
+        // Load Scan History (Yapıldı)
+        async function loadScanHistory() {
+            const data = await apiCall('/api/admin/sources?status=completed');
+            if (!data) return;
+            
+            const sources = data.sources || [];
+            const tbody = document.getElementById('completed-sources-table');
+            
+            if (!sources || sources.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5">Tamamlanmış tarama yok</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = sources.map(s => `
+                <tr>
+                    <td><strong class="text-success">${s.base_domain}</strong></td>
+                    <td><code class="small">${s.discovered_path}</code></td>
+                    <td>
+                        <span class="badge bg-info">${s.pdf_count || s.total_pdfs || 0} PDF</span>
+                    </td>
+                    <td class="small">${s.last_scanned ? new Date(s.last_scanned).toLocaleString('tr') : '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info me-1" onclick="viewSourcePdfs(${s.id}, '${s.base_domain}${s.discovered_path}')" title="PDF'leri Gör">
+                            <i class="bi bi-list-ul"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning me-1" onclick="rescanSource(${s.id})" title="Tekrar Tara">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSource(${s.id})" title="Sil">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // View source PDFs
+        async function viewSourcePdfs(sourceId, sourceName) {
+            document.getElementById('pdfModalTitle').textContent = `PDF'ler: ${sourceName}`;
+            document.getElementById('pdfModalBody').innerHTML = '<p class="text-muted">Yükleniyor...</p>';
+            
+            const modal = new bootstrap.Modal(document.getElementById('pdfDetailModal'));
+            modal.show();
+            
+            const data = await apiCall(`/api/admin/sources/${sourceId}/pdfs`);
+            
+            if (!data || !data.pdfs || data.pdfs.length === 0) {
+                document.getElementById('pdfModalBody').innerHTML = '<p class="text-muted">PDF bulunamadı</p>';
+                return;
+            }
+            
+            const pdfs = data.pdfs;
+            document.getElementById('pdfModalBody').innerHTML = `
+                <div class="mb-3">
+                    <span class="badge bg-info">${pdfs.length} PDF bulundu</span>
+                </div>
+                <div class="list-group">
+                    ${pdfs.map(p => `
+                        <a href="${p.url}" target="_blank" class="list-group-item list-group-item-action bg-dark text-light border-secondary">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="me-3" style="min-width: 0; flex: 1;">
+                                    <h6 class="mb-1 text-truncate">${p.title || p.url.split('/').pop()}</h6>
+                                    <small class="text-muted text-truncate d-block">${p.url}</small>
+                                </div>
+                                <div class="text-end">
+                                    ${p.detected_brand ? `<span class="badge bg-primary">${p.detected_brand}</span>` : ''}
+                                    ${p.detected_model ? `<span class="badge bg-secondary">${p.detected_model}</span>` : ''}
+                                </div>
+                            </div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Rescan source (reset to pending then scan)
+        async function rescanSource(id) {
+            if (!confirm('Bu kaynak tekrar taranacak. Devam edilsin mi?')) return;
+            
+            // Reset to pending
+            await apiCall(`/api/admin/sources/${id}/reset`, { method: 'POST' });
+            
+            // Then scan
+            await scanSource(id);
+            loadScanHistory();
+        }
+        
+        // Init
+        checkAdmin();
+        loadDashboard();
+    </script>
+</body>
+</html>

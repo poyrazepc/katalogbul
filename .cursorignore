@@ -1,0 +1,67 @@
+# =============================================
+# KatalogBul / PDFARA - Cursor Ignore Dosyası
+# Bu dosyalar AI tarafından okunmayacak/değiştirilmeyecek
+# =============================================
+
+# === GÜVENLİK - HASSAS DOSYALAR ===
+.env
+.env.*
+*.env
+authorized_key.json
+secrets.json
+credentials.json
+
+# === VERİTABANI ===
+*.db
+*.sqlite
+*.sqlite3
+data/pepc.db
+data/pepc_catalog.db
+
+# === LOG DOSYALARI ===
+*.log
+app.log
+logs/
+error.log
+
+# === CACHE VE GEÇİCİ DOSYALAR ===
+__pycache__/
+*.pyc
+*.pyo
+.cache/
+.pytest_cache/
+*.egg-info/
+
+# === KULLANICI YÜKLEMELERİ ===
+uploads/
+thumbnails/
+temp/
+
+# === IDE VE EDITOR ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === DEPENDENCY ===
+venv/
+.venv/
+env/
+node_modules/
+
+# === BUILD ARTIFACTS ===
+dist/
+build/
+*.egg
+
+# === GÖRSEL ASSETS ===
+frontend/images/*.jpg
+frontend/images/*.png
+frontend/images/*.gif
+frontend/images/*.webp
+
+# === BÜYÜK DOSYALAR ===
+*.pdf
+*.zip
+*.tar.gz

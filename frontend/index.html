@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html class="dark" lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>MakineParça - İş Makinası Parça ve Doküman Arama</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <style type="text/tailwindcss">
+        .wireframe-grid {
+            background-image:
+                linear-gradient(to right, #ffffff0a 1px, transparent 1px),
+                linear-gradient(to bottom, #ffffff0a 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: grid-pulse 10s infinite alternate;
+        }
+        .data-stream-glow {
+            box-shadow: 0 0 15px rgba(255, 197, 0, 0.4), 0 0 30px rgba(255, 197, 0, 0.2);
+        }
+        @keyframes grid-pulse {
+            0% { background-position: 0 0; opacity: 0.05; }
+            100% { background-position: 40px 40px; opacity: 0.1; }
+        }
+        .animated-texture {
+            background-image:
+                linear-gradient(0deg, transparent 24%, #ffffff05 25%, #ffffff05 26%, transparent 27%, transparent 74%, #ffffff05 75%, #ffffff05 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, #ffffff05 25%, #ffffff05 26%, transparent 27%, transparent 74%, #ffffff05 75%, #ffffff05 76%, transparent 77%, transparent);
+            background-size: 20px 20px;
+            animation: texture-move 60s linear infinite;
+        }
+        @keyframes texture-move {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFC500",
+                        "primary-dark": "#dcb005",
+                        "secondary": "#181711",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#0A0A0A",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#161616",
+                        "text-light": "#181711",
+                        "text-dark": "#E0E0E0",
+                        "text-muted-dark": "#888888",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px" },
+                    backgroundImage: {
+                        'hazard-pattern': "repeating-linear-gradient(45deg, #FFC500, #FFC500 10px, #000 10px, #000 20px)"
+                    }
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FFC500; }
+    </style>
+</head>
+<body class="font-display bg-background-dark min-h-screen flex flex-col overflow-x-hidden text-text-dark antialiased selection:bg-primary selection:text-black">
+    
+    <!-- Hazard Stripe Top -->
+    <div class="h-2 w-full bg-hazard-pattern opacity-80"></div>
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-50 w-full bg-surface-dark/90 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary text-black p-2 rounded-lg shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-3xl font-bold">construction</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-black tracking-tight text-white leading-none uppercase">Makine<span class="text-primary">Parça</span></span>
+                        <span class="text-[10px] font-bold text-primary tracking-widest uppercase">GLOBAL DATASTREAM</span>
+                    </div>
+                </div>
+                <nav class="hidden md:flex gap-8 items-center">
+                    <a class="text-sm font-medium text-white hover:text-primary transition-colors uppercase tracking-wide" href="#features">Özellikler</a>
+                    <a class="text-sm font-medium text-white hover:text-primary transition-colors uppercase tracking-wide" href="#how-it-works">Nasıl Çalışır</a>
+                    <a class="text-sm font-medium text-white hover:text-primary transition-colors uppercase tracking-wide" href="#pricing">Fiyatlandırma</a>
+                    <a class="text-sm font-medium text-white hover:text-primary transition-colors uppercase tracking-wide" href="/contact.html">İletişim</a>
+                </nav>
+                <div class="flex items-center gap-4">
+                    <a href="/login.html" class="hidden md:flex text-sm font-bold text-white hover:text-primary transition-colors uppercase tracking-wide">
+                        Giriş Yap
+                    </a>
+                    <a href="/register.html" class="bg-primary hover:bg-white hover:text-black text-black text-sm font-black py-3 px-6 rounded-lg transition-all shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px] uppercase tracking-wide">
+                        Kayıt Ol
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="relative pt-24 pb-32 lg:pt-40 lg:pb-48 overflow-hidden min-h-[80vh] flex flex-col justify-center bg-background-dark animated-texture">
+            <div class="absolute inset-0 z-0 pointer-events-none wireframe-grid opacity-10"></div>
+            <div class="absolute inset-0 z-0 pointer-events-none">
+                <div class="absolute inset-0 bg-gradient-to-b from-background-dark/90 via-background-dark/95 to-background-dark"></div>
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/10 rounded-full blur-[100px] opacity-20 data-stream-glow"></div>
+            </div>
+            
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-primary/20 text-xs font-bold text-primary mb-10 backdrop-blur-sm shadow-xl data-stream-glow">
+                    <span class="material-symbols-outlined text-base animate-pulse">hub</span>
+                    GLOBAL ARAMA: YÜKSEK TEKNOLOJİ ÇÖZÜMLERİ
+                </div>
+                
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight text-white mb-8 max-w-5xl leading-none uppercase drop-shadow-2xl">
+                    İŞ MAKİNESİ <span class="text-primary">YEDEK PARÇA</span><br>VE <span class="text-primary">DOKÜMAN</span> ARAMA
+                </h1>
+                
+                <p class="text-lg md:text-xl text-text-muted-dark mb-14 max-w-3xl mx-auto leading-relaxed font-light">
+                    Uygulamanız, ekskavatör ve iş makineleri için yedek parça ve teknik dokümanları<br>
+                    <strong>3 arama motoru</strong> ile aynı anda tarar. Küresel tedarikçilere tek tıkla ulaşın.
+                </p>
+                
+                <!-- Search Box -->
+                <div class="w-full max-w-4xl mx-auto bg-surface-dark/90 p-3 rounded-2xl shadow-2xl shadow-black/70 border border-primary/20 ring-1 ring-primary/10 backdrop-blur-xl mb-16">
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <div class="relative md:w-1/4">
+                            <select class="w-full h-14 md:h-16 bg-black/40 border border-primary/20 rounded-xl px-5 text-sm font-bold text-white focus:ring-2 focus:ring-primary focus:border-primary appearance-none cursor-pointer hover:bg-black/60 transition-colors uppercase tracking-wide">
+                                <option>Yedek Parça</option>
+                                <option>Teknik Doküman</option>
+                                <option>Servis Manueli</option>
+                                <option>Şemalar</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-primary">
+                                <span class="material-symbols-outlined">expand_more</span>
+                            </div>
+                        </div>
+                        <div class="relative flex-1">
+                            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                                <span class="material-symbols-outlined text-primary text-xl">search</span>
+                            </div>
+                            <input class="w-full h-14 md:h-16 pl-14 pr-4 bg-black/40 border border-primary/20 rounded-xl text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary focus:border-primary text-lg font-medium" placeholder="Parça no, model veya anahtar kelime..." type="text">
+                        </div>
+                        <a href="/search.html" class="h-14 md:h-16 px-10 bg-primary hover:bg-primary-dark text-black font-black rounded-xl transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 md:w-auto w-full text-lg uppercase tracking-wider group">
+                            <span>Ara</span>
+                            <span class="material-symbols-outlined font-bold group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-4xl mx-auto border-t border-primary/10 pt-8">
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="text-4xl font-black text-primary">15+</span>
+                        <span class="text-xs font-bold text-text-muted-dark uppercase tracking-widest">Dil Desteği</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="text-4xl font-black text-primary">6</span>
+                        <span class="text-xs font-bold text-text-muted-dark uppercase tracking-widest">Arama Motoru</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="text-4xl font-black text-primary">1M+</span>
+                        <span class="text-xs font-bold text-text-muted-dark uppercase tracking-widest">Veri Noktası</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="text-4xl font-black text-primary">24/7</span>
+                        <span class="text-xs font-bold text-text-muted-dark uppercase tracking-widest">Aktif Erişim</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-24 bg-surface-dark border-t border-primary/10 relative">
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-black text-white mb-4 uppercase tracking-tight">NEDEN <span class="text-primary">MAKİNEPARÇA</span>?</h2>
+                    <p class="text-text-muted-dark max-w-2xl mx-auto text-lg">
+                        Endüstriyel veri yönetiminde yeni bir çağ başlatıyor, gelişmiş algoritmalarla küresel tedarik zincirlerini birleştiriyoruz.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-background-dark p-8 rounded-2xl border border-primary/10 hover:border-primary/50 hover:shadow-[0_0_30px_rgba(255,197,0,0.15)] transition-all group">
+                        <div class="w-14 h-14 bg-white/5 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-black transition-colors text-primary">
+                            <span class="material-symbols-outlined text-3xl">terminal</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Entegre Veritabanı</h3>
+                        <p class="text-text-muted-dark text-sm leading-relaxed">
+                            OEM'den yan sanayiye, kapsamlı ve entegre veritabanımızla her türlü parça ve dokümanı anında sorgulayın.
+                        </p>
+                    </div>
+                    <div class="bg-background-dark p-8 rounded-2xl border border-primary/10 hover:border-primary/50 hover:shadow-[0_0_30px_rgba(255,197,0,0.15)] transition-all group">
+                        <div class="w-14 h-14 bg-white/5 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-black transition-colors text-primary">
+                            <span class="material-symbols-outlined text-3xl">translate</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Otomatik Çeviri</h3>
+                        <p class="text-text-muted-dark text-sm leading-relaxed">
+                            Aramalarınız otomatik olarak 15 farklı dile çevrilir. Kendi dilinizde arayın, global tedarikçilere ulaşın.
+                        </p>
+                    </div>
+                    <div class="bg-background-dark p-8 rounded-2xl border border-primary/10 hover:border-primary/50 hover:shadow-[0_0_30px_rgba(255,197,0,0.15)] transition-all group">
+                        <div class="w-14 h-14 bg-white/5 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-black transition-colors text-primary">
+                            <span class="material-symbols-outlined text-3xl">description</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Teknik Doküman Erişimi</h3>
+                        <p class="text-text-muted-dark text-sm leading-relaxed">
+                            Servis manuelleri, teknik şemalar, hidrolik planlar ve bakım kılavuzlarına tek noktadan erişim sağlayın.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-24 relative overflow-hidden bg-black/90 wireframe-grid animated-texture">
+            <div class="relative z-10 max-w-7xl mx-auto px-4 flex flex-col items-center">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-black text-white mb-4 uppercase tracking-tight">NASIL <span class="text-primary">ÇALIŞIR</span>?</h2>
+                    <p class="text-text-muted-dark max-w-2xl mx-auto text-lg">3 basit adımda ihtiyacınız olan kataloga ulaşın</p>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-8 w-full">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-primary">
+                            <span class="text-3xl font-black text-primary">1</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Marka ve Model Girin</h3>
+                        <p class="text-text-muted-dark text-sm">Aradığınız iş makinesinin markasını (Komatsu, CAT, Hitachi vb.) ve modelini yazın.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-primary">
+                            <span class="text-3xl font-black text-primary">2</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Sistemimiz Tarar</h3>
+                        <p class="text-text-muted-dark text-sm">3 arama motorunda eş zamanlı tarama başlatır.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-primary">
+                            <span class="text-3xl font-black text-primary">3</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Anında Sonuç Alın</h3>
+                        <p class="text-text-muted-dark text-sm">Tüm sonuçlar tek ekranda. Boyut, dil ve motora göre filtreleyin. Direkt indirin.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="py-24 relative overflow-hidden bg-surface-dark border-t border-primary/10">
+            <div class="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-12">
+                <div class="max-w-2xl">
+                    <div class="inline-block px-3 py-1 bg-primary text-black text-xs font-bold uppercase mb-4 rounded-sm">VERİ AKIŞINIZA YÖN VERİN</div>
+                    <h2 class="text-3xl md:text-5xl font-black text-white mb-6 uppercase leading-tight">İşinizi Büyütmeye<br>Hazır Mısınız?</h2>
+                    <p class="text-gray-300 text-lg max-w-lg">
+                        Global pazarda ihtiyaç duyduğunuz veriye ulaşmak hiç bu kadar akıllıca olmamıştı. Şimdi ücretsiz üye olun ve 50 deneme aramanızı yapın.
+                    </p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="/register.html" class="bg-primary hover:bg-primary-dark text-black text-lg font-black py-4 px-10 rounded-lg transition-all shadow-[0_4px_0_rgb(0,0,0)] hover:shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wide">
+                        Hemen Başlayın
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing" class="py-24 bg-background-dark border-t border-primary/10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-black text-white mb-4 uppercase tracking-tight">BASİT <span class="text-primary">FİYATLANDIRMA</span></h2>
+                    <p class="text-text-muted-dark max-w-2xl mx-auto text-lg">İhtiyacınıza uygun planı seçin</p>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <!-- Free -->
+                    <div class="bg-surface-dark p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all">
+                        <h3 class="text-2xl font-bold text-white mb-2">Free (Misafir)</h3>
+                        <div class="mb-6">
+                            <span class="text-4xl font-black text-primary">₺0</span>
+                            <span class="text-text-muted-dark">/ay</span>
+                        </div>
+                        <ul class="space-y-4 mb-8 text-sm">
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                Arama yapabilir
+                            </li>
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-red-500 text-lg">cancel</span>
+                                İndirme kilitli
+                            </li>
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                Günlük 5 arama
+                            </li>
+                        </ul>
+                        <a href="/search.html" class="block w-full text-center border-2 border-primary text-primary px-6 py-3 rounded-lg font-bold hover:bg-primary hover:text-black transition uppercase tracking-wide">
+                            Aramayı Dene
+                        </a>
+                    </div>
+                    
+                    <!-- Pro -->
+                    <div class="bg-surface-dark p-8 rounded-2xl border-2 border-primary relative">
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                            <span class="bg-primary text-black px-4 py-1 rounded-sm text-xs font-bold uppercase">Popüler</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Pro (Usta/Servis)</h3>
+                        <div class="mb-6">
+                            <span class="text-4xl font-black text-primary">₺199</span>
+                            <span class="text-text-muted-dark">/ay</span>
+                        </div>
+                        <ul class="space-y-4 mb-8 text-sm">
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                İndirme açık (Krediyle)
+                            </li>
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                3 Arama Motoru
+                            </li>
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                Kredi sistemi
+                            </li>
+                        </ul>
+                        <a href="/register.html" class="block w-full text-center bg-primary text-black px-6 py-3 rounded-lg font-bold hover:bg-primary-dark transition uppercase tracking-wide shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px]">
+                            Şimdi Başla
+                        </a>
+                    </div>
+                    
+                    <!-- Enterprise -->
+                    <div class="bg-surface-dark p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all">
+                        <h3 class="text-2xl font-bold text-white mb-2">Enterprise</h3>
+                        <div class="mb-6">
+                            <span class="text-4xl font-black text-primary">₺499</span>
+                            <span class="text-text-muted-dark">/ay</span>
+                        </div>
+                        <ul class="space-y-4 mb-8 text-sm">
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                Sınırsız indirme
+                            </li>
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                5 Arama Motoru
+                            </li>
+                            <li class="flex items-center gap-3 text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                Kaynak tarama
+                            </li>
+                        </ul>
+                        <a href="/register.html" class="block w-full text-center border-2 border-primary text-primary px-6 py-3 rounded-lg font-bold hover:bg-primary hover:text-black transition uppercase tracking-wide">
+                            İletişime Geç
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-background-dark border-t border-primary/10 pt-16 pb-8 relative">
+        <div class="absolute top-0 left-0 w-full h-1 bg-hazard-pattern opacity-50"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-12">
+                <div class="col-span-1 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="text-primary">
+                            <span class="material-symbols-outlined text-4xl font-bold">construction</span>
+                        </div>
+                        <span class="text-2xl font-black tracking-tight text-white uppercase">Makine<span class="text-primary">Parça</span></span>
+                    </div>
+                    <p class="text-text-muted-dark text-sm max-w-sm mb-6 leading-relaxed">
+                        İnşaat ve madencilik sektörü için dünyanın en gelişmiş dijital parça ve doküman arama platformu. Veriye dayalı çözümlerle işinizi güçlendirin.
+                    </p>
+                    <div class="flex gap-4">
+                        <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-text-muted-dark hover:bg-primary hover:text-black transition-all" href="#">
+                            <span class="material-symbols-outlined text-lg">public</span>
+                        </a>
+                        <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-text-muted-dark hover:bg-primary hover:text-black transition-all" href="#">
+                            <span class="material-symbols-outlined text-lg">share</span>
+                        </a>
+                        <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-text-muted-dark hover:bg-primary hover:text-black transition-all" href="#">
+                            <span class="material-symbols-outlined text-lg">mail</span>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-6 uppercase text-sm tracking-wider border-l-4 border-primary pl-3">Platform</h4>
+                    <ul class="space-y-4 text-sm text-text-muted-dark">
+                        <li><a class="hover:text-primary transition-colors" href="/search.html">Yedek Parça Arama</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="/catalogs">Katalog Yönetimi</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="#pricing">Fiyatlandırma</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="/contact.html">Kurumsal Çözümler</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-6 uppercase text-sm tracking-wider border-l-4 border-primary pl-3">Kaynaklar</h4>
+                    <ul class="space-y-4 text-sm text-text-muted-dark">
+                        <li><a class="hover:text-primary transition-colors" href="#">Blog & Analiz</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="#">Sıkça Sorulanlar</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="#">Kullanım Kılavuzu</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="#">API Dokümantasyonu</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-6 uppercase text-sm tracking-wider border-l-4 border-primary pl-3">Şirket</h4>
+                    <ul class="space-y-4 text-sm text-text-muted-dark">
+                        <li><a class="hover:text-primary transition-colors" href="#">Hakkımızda</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="#">Kariyer</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="/contact.html">İletişim</a></li>
+                        <li><a class="hover:text-primary transition-colors" href="#">Yasal Şartlar</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-sm text-gray-500">
+                    © 2024 MakineParça. Tüm hakları saklıdır.
+                </p>
+                <div class="flex gap-6 text-sm text-gray-500">
+                    <a class="hover:text-primary transition-colors" href="#">Gizlilik Politikası</a>
+                    <a class="hover:text-primary transition-colors" href="#">Kullanım Şartları</a>
+                    <a class="hover:text-primary transition-colors" href="#">Çerezler</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

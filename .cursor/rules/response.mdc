@@ -1,0 +1,50 @@
+---
+description: Claude yanıt kuralları - her zaman aktif
+globs: 
+alwaysApply: true
+---
+
+# Yanıt Kuralları
+
+## Dil
+- Türkçe yanıt ver
+- Kod içi yorumlar Türkçe
+- Değişken/fonksiyon adları İngilizce
+
+## Format
+- **Kısa ve öz ol** - Gereksiz açıklama yapma
+- **Sadece değişen kodu göster** - Tüm dosyayı tekrar yazma
+- **Dosya yolu belirt** - Hangi dosyada değişiklik yapılacak
+
+## Kod Gösterimi
+```python
+# src/auth.py - satır 45-50 değişikliği:
+def verify_token(token: str) -> dict:
+    # Eski kod yerine:
+    ...
+```
+
+## Hata Durumu
+1. Önce sebebini tek cümlede açıkla
+2. Sonra çözümü ver
+3. Alternatif varsa belirt
+
+## Yapma
+- Token harcayacak gereksiz açıklama yapma
+- Aynı şeyi tekrar etme
+- Tüm dosyayı paste etme
+- "Tabii ki!", "Elbette!" gibi gereksiz başlangıçlar yapma
+- Çalışan kodu gereksiz yere değiştirme
+
+## Yap
+- Direkt konuya gir
+- Kod değişikliğini net göster
+- Gerekirse satır numarası ver
+- Birden fazla dosya değişecekse liste halinde göster
+- Migration gerekiyorsa SQL dosyası oluştur
+
+## Proje Bilgisi
+- Database: SQLite (data/pepc.db)
+- Backend: FastAPI + Python 3.11
+- Frontend: Vanilla JS + Tailwind
+- Yeni tablolar için migrations/ klasörüne SQL ekle
