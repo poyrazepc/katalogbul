@@ -60,10 +60,11 @@ class MultiSearchCoordinator:
         count: int = 20,
         language: str = "en",
         doc_type: str = None,
-        use_cache: bool = True
+        use_cache: bool = True,
+        page: int = None
     ) -> Dict[str, Any]:
         """
-        Tek bir motor ile arama yap
+        Tek bir motor ile arama yap - sayfa bazlı cache
         
         Returns:
             {
@@ -74,13 +75,14 @@ class MultiSearchCoordinator:
                 "error": str or None
             }
         """
-        # Cache kontrolü
+        # Cache kontrolü - sayfa bazlı
         if self.use_cache and use_cache:
             cached_results = self.cache.get_cached_results(
                 engine=engine_name,
                 query=query,
                 language=language,
-                doc_type=doc_type
+                doc_type=doc_type,
+                page=page
             )
             if cached_results is not None:
                 return {
@@ -121,14 +123,15 @@ class MultiSearchCoordinator:
             error = str(e)
             print(f"Error searching {engine_name}: {e}")
         
-        # Cache'e kaydet
+        # Cache'e kaydet - sayfa bazlı
         if self.use_cache and results and not error:
             self.cache.save_to_cache(
                 engine=engine_name,
                 query=query,
                 results=results,
                 language=language,
-                doc_type=doc_type
+                doc_type=doc_type,
+                page=page
             )
         
         return {
@@ -147,10 +150,11 @@ class MultiSearchCoordinator:
         language: str = "en",
         doc_type: str = None,
         engines: List[str] = None,
-        use_cache: bool = True
+        use_cache: bool = True,
+        page: int = None
     ) -> Dict[str, Any]:
         """
-        Tüm motorlarla paralel arama yap
+        Tüm motorlarla paralel arama yap - sayfa bazlı cache
         
         Args:
             query: Arama sorgusu
@@ -159,6 +163,7 @@ class MultiSearchCoordinator:
             doc_type: Döküman tipi
             engines: Kullanılacak motorlar (None = hepsi)
             use_cache: Cache kullan
+            page: Sayfa numarası (cache key için)
             
         Returns:
             {
@@ -190,7 +195,8 @@ class MultiSearchCoordinator:
                     count=count_per_engine,
                     language=language,
                     doc_type=doc_type,
-                    use_cache=use_cache
+                    use_cache=use_cache,
+                    page=page
                 )
                 tasks.append(task)
         

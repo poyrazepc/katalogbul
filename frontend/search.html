@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Detaylı Parça Arama - MakineParça</title>
+    <title>Detaylı PDF Arama - MakineParça</title>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -105,8 +105,8 @@
                 <div class="inline-block px-3 py-1 bg-primary/10 border border-primary/30 text-primary text-xs font-bold uppercase mb-3 rounded-sm">
                     Profesyonel Arama
                 </div>
-                <h1 class="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight uppercase">Detaylı Parça <span class="text-primary">Arama</span></h1>
-                <p class="text-gray-400">3 arama motoru ile aynı anda arama yapın, teknik doküman ve yedek parça bulun.</p>
+                <h1 class="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight uppercase">Detaylı PDF <span class="text-primary">Arama</span></h1>
+                <p class="text-gray-400">3 arama motoru ile aynı anda arama yapın, teknik doküman ve PDF katalog bulun.</p>
             </div>
 
             <!-- Search Form Card -->
@@ -130,7 +130,7 @@
                         
                         <!-- Arama Terimi -->
                         <div class="flex-1">
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Parça no veya model girin (opsiyonel)</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Model girin (opsiyonel)</label>
                             <div class="relative">
                                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">search</span>
                                 <input 
@@ -159,7 +159,7 @@
                                 id="category"
                                 class="w-full h-12 px-4 bg-background-dark border border-border-dark rounded text-white text-sm focus:ring-1 focus:ring-primary focus:border-primary appearance-none cursor-pointer"
                             >
-                                <option value="parts_catalog">Yedek Parça Kataloğu</option>
+                                <option value="parts_catalog">Parça Kataloğu</option>
                                 <option value="service_manual">Servis / Tamir Kılavuzu</option>
                                 <option value="electrical_diagram">Elektrik Şeması</option>
                                 <option value="hydraulic_diagram">Hidrolik Şeması</option>
@@ -458,9 +458,13 @@
         let sourceResultsSelectedDomain = 'all'; // 'all' veya domain
         let sourceResultsPage = 1;
         let sourceResultsPerPage = 20;
+        let isNewSearch = false;     // Yeni arama mı yoksa sayfa değişimi mi
         
         const LANGUAGES = {
-            'en': 'English'
+            'en': 'English',
+            'tr': 'Türkçe',
+            'ru': 'Русский',
+            'zh': '中文'
         };
         
         const selectedLangs = new Set(['en']);
@@ -699,6 +703,13 @@
             freePage = 1;
             premiumPage = 1;
             currentTab = 'all';
+            
+            // Yeni arama - kaynakları sıfırla
+            isNewSearch = true;
+            discoveredSources = [];
+            allSourceResults = [];
+            document.getElementById('sources-count-badge').textContent = '0';
+            document.getElementById('source-results-count-badge').textContent = '0';
             
             await performSearch();
         });
@@ -1035,6 +1046,9 @@
                 premiumPage = page;
             }
             
+            // Sayfa değişimi - kaynakları koru
+            isNewSearch = false;
+            
             // Yeni arama yap
             await performSearch(page);
             
@@ -1063,7 +1077,30 @@
                 });
                 
                 const data = await response.json();
-                discoveredSources = data.sources || [];
+                const newSources = data.sources || [];
+                
+                // Yeni arama ise sıfırla, sayfa değişimi ise merge et
+                if (isNewSearch) {
+                    discoveredSources = newSources;
+                } else {
+                    // Mevcut kaynaklara yeni kaynakları ekle (duplicate kontrolü)
+                    newSources.forEach(newSource => {
+                        const existingIdx = discoveredSources.findIndex(s => s.domain === newSource.domain);
+                        if (existingIdx === -1) {
+                            // Yeni kaynak - ekle
+                            discoveredSources.push(newSource);
+                        } else {
+                            // Var olan kaynak - path'leri birleştir
+                            const existing = discoveredSources[existingIdx];
+                            newSource.paths.forEach(path => {
+                                if (!existing.paths.includes(path)) {
+                                    existing.paths.push(path);
+                                }
+                            });
+                            existing.pdf_count = Math.max(existing.pdf_count || 0, newSource.pdf_count || 0);
+                        }
+                    });
+                }
                 
                 // Tab badge güncelle
                 document.getElementById('sources-count-badge').textContent = discoveredSources.length;

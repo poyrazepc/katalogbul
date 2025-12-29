@@ -795,28 +795,26 @@ async def multi_engine_search(
     seen_urls = set()
     total_search_time = 0
     
-    # OR operatörlü birleşik sorgu oluştur
-    # Tek API çağrısı ile tüm terimler aranır
-    query = build_search_query(
-        brand=request.brand,
-        model=request.model or request.query_text,
-        category=category,
-        max_terms=4,  # OR clause için 4 terim
-        engine="google"
-    )
-    
-    # Debug log (production'da kaldır)
-    # print(f"[MULTI-SEARCH] Query: {query}")
-    
     for lang in languages:
-        # Multi-engine arama - Motor başına 50 sonuç limiti
+        # Her dil için ayrı sorgu oluştur (dil bazlı varyantlar)
+        query = build_search_query(
+            brand=request.brand,
+            model=request.model or request.query_text,
+            category=category,
+            max_terms=4,
+            engine="google",
+            language=lang
+        )
+        
+        # Multi-engine arama - Motor başına 50 sonuç limiti, sayfa bazlı cache
         result = await multi_search_coordinator.search_all_engines(
             query=query,
             count_per_engine=50,  # Her motor için 50 sonuç
             language=lang,
             doc_type=category,
             engines=request.engines,
-            use_cache=request.use_cache
+            use_cache=request.use_cache,
+            page=request.page  # Sayfa bazlı cache key
         )
                 
         total_search_time += result.get("search_time", 0)
@@ -2671,6 +2669,128 @@ async def reset_source(
     scanner = SourceScanner(db)
     success = scanner.reset_source(source_id)
     return {"success": success}
+
+
+# ================================================================
+# KAYITLI LİNKLER (Discovered PDFs - Admin)
+# ================================================================
+
+@app.get("/api/admin/discovered-pdfs")
+async def get_discovered_pdfs(
+    page: int = Query(1, ge=1, description="Sayfa numarası"),
+    per_page: int = Query(50, ge=10, le=200, description="Sayfa başına sonuç"),
+    domain: Optional[str] = Query(None, description="Domain filtresi"),
+    brand: Optional[str] = Query(None, description="Marka filtresi"),
+    min_size: Optional[float] = Query(None, description="Minimum boyut (MB)"),
+    max_size: Optional[float] = Query(None, description="Maksimum boyut (MB)"),
+    sort_by: str = Query("size_mb", description="Sıralama: size_mb, title, discovered_at"),
+    sort_order: str = Query("desc", description="Sıralama yönü: asc, desc"),
+    user: dict = Depends(get_admin_user)
+):
+    """Keşfedilen PDF'leri listele - Sayfalama, filtreleme ve sıralama (Admin)"""
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Filtre koşulları
+        conditions = ["is_valid = 1"]
+        params = []
+        
+        if domain:
+            conditions.append("domain LIKE ?")
+            params.append(f"%{domain}%")
+        
+        if brand:
+            conditions.append("brand LIKE ?")
+            params.append(f"%{brand}%")
+        
+        if min_size is not None:
+            conditions.append("size_mb >= ?")
+            params.append(min_size)
+        
+        if max_size is not None:
+            conditions.append("size_mb <= ?")
+            params.append(max_size)
+        
+        where_clause = " AND ".join(conditions)
+        
+        # Sıralama validasyonu
+        valid_sort_columns = ["size_mb", "title", "discovered_at", "domain"]
+        if sort_by not in valid_sort_columns:
+            sort_by = "size_mb"
+        sort_direction = "DESC" if sort_order.lower() == "desc" else "ASC"
+        
+        # Toplam sayı
+        cursor.execute(f"SELECT COUNT(*) FROM discovered_pdfs WHERE {where_clause}", params)
+        total = cursor.fetchone()[0]
+        
+        # Sayfalama
+        offset = (page - 1) * per_page
+        total_pages = (total + per_page - 1) // per_page if total > 0 else 1
+        
+        # Sonuçları çek
+        cursor.execute(f"""
+            SELECT id, url, title, domain, size_bytes, size_mb, brand, model, 
+                   category, discovered_at, last_checked
+            FROM discovered_pdfs 
+            WHERE {where_clause}
+            ORDER BY {sort_by} {sort_direction} NULLS LAST
+            LIMIT ? OFFSET ?
+        """, params + [per_page, offset])
+        
+        pdfs = []
+        for row in cursor.fetchall():
+            pdfs.append({
+                "id": row[0],
+                "url": row[1],
+                "title": row[2],
+                "domain": row[3],
+                "size_bytes": row[4],
+                "size_mb": row[5],
+                "size_formatted": f"{row[5]:.1f} MB" if row[5] else None,
+                "brand": row[6],
+                "model": row[7],
+                "category": row[8],
+                "discovered_at": row[9],
+                "last_checked": row[10]
+            })
+        
+        # Benzersiz domain ve brand listesi (filtreleme için)
+        cursor.execute("SELECT DISTINCT domain FROM discovered_pdfs WHERE is_valid = 1 ORDER BY domain")
+        domains = [r[0] for r in cursor.fetchall() if r[0]]
+        
+        cursor.execute("SELECT DISTINCT brand FROM discovered_pdfs WHERE is_valid = 1 AND brand IS NOT NULL ORDER BY brand")
+        brands = [r[0] for r in cursor.fetchall() if r[0]]
+        
+        return {
+            "items": pdfs,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+            "filters": {
+                "domains": domains,
+                "brands": brands
+            }
+        }
+    finally:
+        conn.close()
+
+
+@app.delete("/api/admin/discovered-pdfs/{pdf_id}")
+async def delete_discovered_pdf(
+    pdf_id: int,
+    user: dict = Depends(get_admin_user)
+):
+    """Keşfedilen PDF'i sil (Admin)"""
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM discovered_pdfs WHERE id = ?", (pdf_id,))
+        conn.commit()
+        return {"success": cursor.rowcount > 0}
+    finally:
+        conn.close()
 
 
 # ================================================================

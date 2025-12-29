@@ -22,13 +22,15 @@ class CacheManager:
         conn.row_factory = sqlite3.Row
         return conn
     
-    def _generate_cache_key(self, engine: str, query: str, language: str = None, doc_type: str = None) -> str:
-        """Benzersiz cache key oluştur"""
+    def _generate_cache_key(self, engine: str, query: str, language: str = None, doc_type: str = None, page: int = None) -> str:
+        """Benzersiz cache key oluştur - sayfa bazlı"""
         key_parts = [engine, query.lower().strip()]
         if language:
             key_parts.append(language)
         if doc_type:
             key_parts.append(doc_type)
+        if page is not None:
+            key_parts.append(f"p{page}")
         
         key_string = "|".join(key_parts)
         return hashlib.md5(key_string.encode()).hexdigest()
@@ -38,10 +40,11 @@ class CacheManager:
         engine: str, 
         query: str, 
         language: str = None, 
-        doc_type: str = None
+        doc_type: str = None,
+        page: int = None
     ) -> Optional[List[Dict]]:
-        """Cache'den sonuçları getir (varsa ve süresi dolmamışsa)"""
-        cache_key = self._generate_cache_key(engine, query, language, doc_type)
+        """Cache'den sonuçları getir (varsa ve süresi dolmamışsa) - sayfa bazlı"""
+        cache_key = self._generate_cache_key(engine, query, language, doc_type, page)
         
         conn = self._get_connection()
         cursor = conn.cursor()
@@ -65,10 +68,11 @@ class CacheManager:
         query: str,
         results: List[Dict],
         language: str = None,
-        doc_type: str = None
+        doc_type: str = None,
+        page: int = None
     ) -> bool:
-        """Sonuçları cache'e kaydet - Yeni sonuçlar eskilerle birleştirilir (merge)"""
-        cache_key = self._generate_cache_key(engine, query, language, doc_type)
+        """Sonuçları cache'e kaydet - sayfa bazlı, yeni sonuçlar eskilerle birleştirilir (merge)"""
+        cache_key = self._generate_cache_key(engine, query, language, doc_type, page)
         expires_at = datetime.now() + timedelta(days=self.expiry_days)
         
         conn = self._get_connection()

@@ -317,6 +317,10 @@
             <a href="#" class="sidebar-link" data-section="scan-history">
                 <i class="bi bi-clock-history"></i> Yapıldı
             </a>
+            <a href="#" class="sidebar-link" data-section="discovered-pdfs">
+                <i class="bi bi-file-earmark-pdf"></i> Kayıtlı Linkler
+                <span id="discovered-pdfs-badge" class="badge bg-info ms-2" style="display:none;">0</span>
+            </a>
             
             <p class="nav-section mt-4">Diğer</p>
             <a href="/" class="sidebar-link">
@@ -799,6 +803,115 @@
                 </div>
             </section>
 
+            <!-- Discovered PDFs Section (Kayıtlı Linkler) -->
+            <section id="section-discovered-pdfs" class="admin-section">
+                <div class="section-header d-flex justify-content-between align-items-center mb-4">
+                    <h4><i class="bi bi-file-earmark-pdf me-2"></i>Kayıtlı Linkler</h4>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadDiscoveredPdfs()">
+                        <i class="bi bi-arrow-clockwise"></i> Yenile
+                    </button>
+                </div>
+                
+                <!-- Stats -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <h3 id="dp-total" class="text-info">0</h3>
+                            <p>Toplam PDF</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <h3 id="dp-domains" class="text-success">0</h3>
+                            <p>Benzersiz Domain</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <h3 id="dp-with-size" class="text-warning">0</h3>
+                            <p>Boyutu Belli</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <h3 id="dp-large" class="text-primary">0</h3>
+                            <p>5MB+ PDF</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filters -->
+                <div class="stat-card mb-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label">Domain</label>
+                            <select id="dp-filter-domain" class="form-select" onchange="loadDiscoveredPdfs()">
+                                <option value="">Tümü</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Marka</label>
+                            <select id="dp-filter-brand" class="form-select" onchange="loadDiscoveredPdfs()">
+                                <option value="">Tümü</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Min Boyut (MB)</label>
+                            <input type="number" id="dp-filter-min-size" class="form-control" placeholder="0" min="0" step="0.5" onchange="loadDiscoveredPdfs()">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Max Boyut (MB)</label>
+                            <input type="number" id="dp-filter-max-size" class="form-control" placeholder="1000" min="0" step="0.5" onchange="loadDiscoveredPdfs()">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Sıralama</label>
+                            <select id="dp-sort-by" class="form-select" onchange="loadDiscoveredPdfs()">
+                                <option value="size_mb">Boyut</option>
+                                <option value="title">Başlık</option>
+                                <option value="discovered_at">Tarih</option>
+                                <option value="domain">Domain</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Yön</label>
+                            <select id="dp-sort-order" class="form-select" onchange="loadDiscoveredPdfs()">
+                                <option value="desc">Büyükten Küçüğe</option>
+                                <option value="asc">Küçükten Büyüğe</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Table -->
+                <div class="data-table">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40%;">Başlık / URL</th>
+                                    <th>Domain</th>
+                                    <th>Marka</th>
+                                    <th>Boyut</th>
+                                    <th>Tarih</th>
+                                    <th style="width: 80px;">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dp-table-body">
+                                <tr><td colspan="6" class="text-center text-muted py-5">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted" id="dp-page-info">-</div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="dp-pagination"></ul>
+                    </nav>
+                </div>
+            </section>
+
         </div>
     </div>
 
@@ -884,6 +997,7 @@
             else if (section === 'cache') loadCache();
             else if (section === 'source-scan') loadSources();
             else if (section === 'scan-history') loadScanHistory();
+            else if (section === 'discovered-pdfs') loadDiscoveredPdfs();
         }
         
         // Load Dashboard
@@ -1383,6 +1497,155 @@
             // Then scan
             await scanSource(id);
             loadScanHistory();
+        }
+        
+        // ================================================================
+        // KAYITLI LİNKLER (Discovered PDFs)
+        // ================================================================
+        
+        let dpCurrentPage = 1;
+        let dpFiltersLoaded = false;
+        
+        async function loadDiscoveredPdfs(page = 1) {
+            dpCurrentPage = page;
+            
+            const domain = document.getElementById('dp-filter-domain').value;
+            const brand = document.getElementById('dp-filter-brand').value;
+            const minSize = document.getElementById('dp-filter-min-size').value;
+            const maxSize = document.getElementById('dp-filter-max-size').value;
+            const sortBy = document.getElementById('dp-sort-by').value;
+            const sortOrder = document.getElementById('dp-sort-order').value;
+            
+            let url = `/api/admin/discovered-pdfs?page=${page}&per_page=50&sort_by=${sortBy}&sort_order=${sortOrder}`;
+            if (domain) url += `&domain=${encodeURIComponent(domain)}`;
+            if (brand) url += `&brand=${encodeURIComponent(brand)}`;
+            if (minSize) url += `&min_size=${minSize}`;
+            if (maxSize) url += `&max_size=${maxSize}`;
+            
+            const data = await apiCall(url);
+            if (!data) return;
+            
+            // Stats güncelle
+            document.getElementById('dp-total').textContent = data.total || 0;
+            document.getElementById('dp-domains').textContent = data.filters?.domains?.length || 0;
+            
+            // Filtre seçeneklerini güncelle (sadece ilk yüklemede)
+            if (!dpFiltersLoaded && data.filters) {
+                const domainSelect = document.getElementById('dp-filter-domain');
+                const brandSelect = document.getElementById('dp-filter-brand');
+                
+                domainSelect.innerHTML = '<option value="">Tümü</option>' + 
+                    (data.filters.domains || []).map(d => `<option value="${d}">${d}</option>`).join('');
+                    
+                brandSelect.innerHTML = '<option value="">Tümü</option>' + 
+                    (data.filters.brands || []).map(b => `<option value="${b}">${b}</option>`).join('');
+                
+                dpFiltersLoaded = true;
+            }
+            
+            // Badge güncelle
+            const badge = document.getElementById('discovered-pdfs-badge');
+            if (data.total > 0) {
+                badge.textContent = data.total;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            // İstatistikler
+            const pdfs = data.items || [];
+            const withSize = pdfs.filter(p => p.size_mb).length;
+            const large = pdfs.filter(p => p.size_mb >= 5).length;
+            document.getElementById('dp-with-size').textContent = withSize;
+            document.getElementById('dp-large').textContent = large;
+            
+            // Tablo render
+            const tbody = document.getElementById('dp-table-body');
+            if (pdfs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5">PDF bulunamadı</td></tr>';
+            } else {
+                tbody.innerHTML = pdfs.map(pdf => `
+                    <tr>
+                        <td>
+                            <div class="text-truncate" style="max-width: 350px;">
+                                <a href="${pdf.url}" target="_blank" class="text-info fw-bold">${pdf.title || 'Başlıksız'}</a>
+                            </div>
+                            <small class="text-muted text-truncate d-block" style="max-width: 350px;">${pdf.url}</small>
+                        </td>
+                        <td><span class="badge bg-secondary">${pdf.domain || '-'}</span></td>
+                        <td>${pdf.brand || '-'}</td>
+                        <td>
+                            ${pdf.size_mb 
+                                ? `<span class="badge ${pdf.size_mb >= 5 ? 'bg-success' : 'bg-warning text-dark'}">${pdf.size_formatted}</span>`
+                                : '<span class="text-muted">-</span>'}
+                        </td>
+                        <td class="small">${pdf.discovered_at ? new Date(pdf.discovered_at).toLocaleDateString('tr') : '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteDiscoveredPdf(${pdf.id})" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            
+            // Sayfalama
+            renderDpPagination(data.page, data.total_pages, data.total);
+        }
+        
+        function renderDpPagination(currentPage, totalPages, total) {
+            const nav = document.getElementById('dp-pagination');
+            const info = document.getElementById('dp-page-info');
+            
+            info.textContent = `Toplam ${total} sonuçtan ${(currentPage - 1) * 50 + 1}-${Math.min(currentPage * 50, total)} arası gösteriliyor`;
+            
+            if (totalPages <= 1) {
+                nav.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Önceki
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link bg-dark border-secondary text-light" href="#" onclick="loadDiscoveredPdfs(${currentPage - 1}); return false;">«</a>
+            </li>`;
+            
+            // Sayfalar
+            const start = Math.max(1, currentPage - 2);
+            const end = Math.min(totalPages, currentPage + 2);
+            
+            if (start > 1) {
+                html += `<li class="page-item"><a class="page-link bg-dark border-secondary text-light" href="#" onclick="loadDiscoveredPdfs(1); return false;">1</a></li>`;
+                if (start > 2) html += `<li class="page-item disabled"><span class="page-link bg-dark border-secondary text-muted">...</span></li>`;
+            }
+            
+            for (let i = start; i <= end; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link ${i === currentPage ? 'bg-warning text-dark border-warning' : 'bg-dark border-secondary text-light'}" href="#" onclick="loadDiscoveredPdfs(${i}); return false;">${i}</a>
+                </li>`;
+            }
+            
+            if (end < totalPages) {
+                if (end < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link bg-dark border-secondary text-muted">...</span></li>`;
+                html += `<li class="page-item"><a class="page-link bg-dark border-secondary text-light" href="#" onclick="loadDiscoveredPdfs(${totalPages}); return false;">${totalPages}</a></li>`;
+            }
+            
+            // Sonraki
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link bg-dark border-secondary text-light" href="#" onclick="loadDiscoveredPdfs(${currentPage + 1}); return false;">»</a>
+            </li>`;
+            
+            nav.innerHTML = html;
+        }
+        
+        async function deleteDiscoveredPdf(id) {
+            if (!confirm('Bu PDF kaydı silinecek. Emin misiniz?')) return;
+            
+            const result = await apiCall(`/api/admin/discovered-pdfs/${id}`, { method: 'DELETE' });
+            if (result && result.success) {
+                loadDiscoveredPdfs(dpCurrentPage);
+            }
         }
         
         // Init
