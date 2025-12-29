@@ -22,8 +22,8 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY", "katalogbul-secret-key-change-in-produc
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing - pbkdf2_sha256 kullan (bcrypt uyumluluk sorunu nedeniyle)
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 
 # ================================================================
