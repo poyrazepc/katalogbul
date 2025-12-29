@@ -6,12 +6,12 @@ pymupdf
 aiofiles
 pydantic
 requests
-python-jose[cryptography]
-passlib[bcrypt]
+python-jose
+passlib
+bcrypt
 cryptography
 python-multipart
 email-validator
 sse-starlette
 anthropic
 PyJWT
-
